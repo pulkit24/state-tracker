@@ -5,18 +5,19 @@
 	<meta charset=utf-8 />
 	<title>Angular State Tracker</title>
 	<link rel="stylesheet" href="app.css" />
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
 </head>
 
-<body ng-app="sampleApp" ng-controller="SampleCtrl">
+<body ng-app="sampleApp" ng-controller="SampleCtrl" ng-cloak>
 
-	<button state-tracker="s1">{{ s1._state }}</button>
-	<button state-tracker="s2" state-choices="myChoices">{{ s2._state }}</button>
+	<button state-tracker="s1">{{ s1 | stateTracker:"Idle":"Active":"Complete":"Failed" }}</button>
+	<button state-tracker="s2" state-choices="myChoices">{{ s2 | stateTracker:"Begin":"Do something":"End" }}</button>
 
 	<!-- Scripts -->
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
 	<script src="../src/state-tracker.js"></script>
 	<script src="../src/state-tracker.service.js"></script>
-	<script src="../src/state-tracker.directive.js"></script>
+	<script src="../src/state-tracker.filters.js"></script>
+	<script src="../src/state-tracker.directives.js"></script>
 	<script src="app.js"></script>
 </body>
 

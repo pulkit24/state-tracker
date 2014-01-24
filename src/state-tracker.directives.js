@@ -9,6 +9,7 @@ angular.module("state-tracker")
 			, link: function(scope, elem, attrs) {
 			}
 			, controller: function($scope, stateTracker) {
+
 				////////////////////////////////////
 				// Initialize a state tracker //
 				////////////////////////////////////

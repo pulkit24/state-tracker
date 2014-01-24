@@ -21,10 +21,20 @@ angular.module("state-tracker")
 				return this;
 			};
 
+			// Check state
+			this._isState = function(state) {
+				return this._state === state;
+			};
+
 			// Revert to default
 			this._revert = function(state) {
 				this._state = this._defaultState;
 				return this;
+			};
+
+			// Map the input to the list of states. Returns the current state's correspondence
+			this._map = function(map) {
+				return map[this._state];
 			};
 		};
 
@@ -50,12 +60,19 @@ angular.module("state-tracker")
 		// complete - set using tracker.complete(); check using tracker.isComplete();
 		// failed - set using tracker.fail(); check using tracker.isFailed();
 		var _createDefaultTracker = function(registrationName) {
-			return _createCustomTracker([
-				{set: "idle", check: "isIdle"}
-				, {set: "activate", check: "isActive"}
-				, {set: "complete", check: "isComplete"}
-				, {set: "fail", check: "isFailed"}
-			], registrationName);
+			return _createCustomTracker([{
+				set: "idle"
+				, check: "isIdle"
+			}, {
+				set: "activate"
+				, check: "isActive"
+			}, {
+				set: "complete"
+				, check: "isComplete"
+			}, {
+				set: "fail"
+				, check: "isFailed"
+			}], registrationName);
 		};
 
 		// Create a custom tracker with your own states
@@ -80,57 +97,67 @@ angular.module("state-tracker")
 
 			// Create a basic tracker
 			var tracker = _createBarebonesTracker(registrationName);
+			var stateName, setFunction, checkFunction;
 
 			// Include the states supplied
 			angular.forEach(states, function(state, index) {
-				// Check based on type of state info supplied
+				// Construct meaningful function names based on the type of info supplied
+				stateName = index + 1; // 1 based indexing: avoid zero
 
 				if (angular.isString(state)) {
-					tracker = addState(tracker, state, state, "is" + _capitalize(state));
-
-					// Mark as default if this is the first state
-					if(!tracker._defaultState)
-						tracker._defaultState = tracker._states[state];
+					setFunction = state;
+					checkFunction = "is" + _capitalize(state);
+				} else if (angular.isObject(state)) {
+					setFunction = state.set;
+					checkFunction = state.check;
 				}
-				else if (angular.isObject(state)) {
-					tracker = addState(tracker, index, state.set, state.check);
 
-					// Mark as default if this is the first state
-					if(!tracker._defaultState)
-						tracker._defaultState = tracker._states[index];
-				}
+				// Add the state to the tracker
+				tracker = addState(tracker, stateName, setFunction, checkFunction, !tracker._defaultState);
 			});
 
 			return tracker;
 		};
 
+		// Sanitize a given value for use as name
+		// Allow alphanumeric, and non-initial underscores only
+		function _sanitize(value) {
+			return ("" + value).replace(/[^a-zA-Z0-9_]/g, "").replace(/^_+/, "");
+		}
+
 		// Unified function to create a tracker. Delegates to other functions as necessary
 		var createTracker = function(arg0, arg1) {
-			if(angular.isArray(arg0))
+			if (angular.isArray(arg0))
 				return _createCustomTracker(arg0, arg1); // states, registrationName
 			else
 				return _createDefaultTracker(arg0); // registrationName
 		};
 
-		function addState(tracker, state, set, check) {
-			// Sanitize the state name
-			state = ("" + state).replace(/[^a-zA-Z0-9_]/g, "");
+		// Add a state to the tracker, and make human-friendly set and check functions
+		// for the individual state
+		function addState(tracker, state, set, check, isDefault) {
+			state = parseInt(_sanitize(state), 10);
+			set = _sanitize(set);
+			check = _sanitize(check);
 
 			// Register as a new state
 			tracker._states[state] = state;
 
-			// Register setter functions
+			// Register human-friendly setter function
 			tracker[set] = function() {
-				tracker._state = tracker._states[state];
-				return tracker;
+				return tracker._setState(state);
 			};
 
-			// Register check functions
+			// Register human-friendly check function
 			tracker[check] = function() {
-				return tracker._state === tracker._states[state];
+				return tracker._isState(state);
 			};
 
-			return tracker._revert();
+			// Mark as default if required
+			if (isDefault)
+				tracker._defaultState = tracker._states[state];
+
+			return tracker._revert(); // set to default state
 		}
 
 		// Register a tracker globally against a reference name
