@@ -9,12 +9,14 @@
 
 <body ng-app="sampleApp" ng-controller="SampleCtrl">
 
-	<button>{{ s1 }}</button>
-	<button>{{ s2 }}</button>
+	<button state-tracker="s1">{{ s1._state }}</button>
+	<button state-tracker="s2" state-choices="myChoices">{{ s2._state }}</button>
 
 	<!-- Scripts -->
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
 	<script src="../src/state-tracker.js"></script>
+	<script src="../src/state-tracker.service.js"></script>
+	<script src="../src/state-tracker.directive.js"></script>
 	<script src="app.js"></script>
 </body>
 
