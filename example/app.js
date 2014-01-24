@@ -3,5 +3,9 @@ angular.module("sampleApp", ["state-tracker"])
 
 		$scope.s1 = stateTracker.new();
 
-		$scope.s2 = stateTracker.new().fail();
+		$scope.s2 = stateTracker.custom([
+			"begin"
+			, "do"
+			, "end"
+		]).begin();
 	});
