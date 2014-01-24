@@ -17,7 +17,9 @@ angular.module("state-tracker")
 
 			// Set state
 			this._setState = function(state) {
+				this._notifyUnset(this._state);
 				this._state = state;
+				this._notifySet(state);
 				return this;
 			};
 
@@ -28,13 +30,56 @@ angular.module("state-tracker")
 
 			// Revert to default
 			this._revert = function(state) {
-				this._state = this._defaultState;
-				return this;
+				return this._setState(this._defaultState);
 			};
 
-			// Map the input to the list of states. Returns the current state's correspondence
-			this._map = function(map) {
-				return map[this._state];
+			//////////////////////////
+			// Event subscriptions //
+			//////////////////////////
+
+			var setListeners = [];
+			var unsetListeners = [];
+
+			// Register as a listener
+			this.$on = function(event, listener) {
+				var id;
+				if(event.toLowerCase() === "set") {
+					id = setListeners.length;
+					setListeners.push(listener);
+				}
+				else if(event.toLowerCase() === "unset") {
+					id = unsetListeners.length;
+					unsetListeners.push(listener);
+				}
+				return function() {
+					this.$unbind(id);
+				};
+			};
+
+			this.$unbind = function(event, id) {
+				if(event.toLowerCase() === "set") {
+					setListeners[id] = angular.noop;
+				}
+				else if(event.toLowerCase() === "unset") {
+					unsetListeners[id] = angular.noop;
+				}
+			};
+
+			// Generic event push service
+			this._notify = function(listeners, payload) {
+				angular.forEach(listeners, function(listener, id) {
+					listener(payload);
+				});
+			};
+
+			// Notify a state is being unset/changed
+			this._notifyUnset = function(oldState) {
+				this._notify(unsetListeners, oldState);
+			};
+
+			// Notify a state is being set
+			this._notifySet = function(newState) {
+				this._notify(setListeners, newState);
 			};
 		};
 

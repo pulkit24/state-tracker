@@ -10,8 +10,12 @@
 
 <body ng-app="sampleApp" ng-controller="SampleCtrl" ng-cloak>
 
-	<button state-tracker="s1">{{ s1 | stateTracker:"Idle":"Active":"Complete":"Failed" }}</button>
-	<button state-tracker="s2" state-choices="myChoices">{{ s2 | stateTracker:"Begin":"Do something":"End" }}</button>
+	<button state-tracker="s1" ng-click="s1.activate()" state-class="['', 'active', 'success', 'error']">
+		{{ s1 | stateTracker:"Save":"Saving...":"Saved":"Save Failed" }}
+	</button>
+	<button state-tracker="s2" state-choices="['begin', 'do', 'end']" state-on-change="onChange" ng-click="s2.begin()">
+		{{ v }}
+	</button>
 
 	<!-- Scripts -->
 	<script src="../src/state-tracker.js"></script>

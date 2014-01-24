@@ -3,11 +3,20 @@
 	font-family: Roboto, sans-serif;
 }
 button {
-	font-family: Roboto, sans-serif;
-	font-size: 14px;
-	text-transform: uppercase;
 	padding: 10px 40px;
-	background: #ddd;
-	border: 4px solid #ddd;
+	border: none;
 	border-radius: 6px;
+	background: #ddd;
+	text-transform: uppercase;
+	font-size: 14px;
+	font-family: Roboto, sans-serif;
+}
+button.active {
+	background: lightblue;
+}
+button.success {
+	background: green;
+}
+button.error {
+	background: #c90000;
 }
