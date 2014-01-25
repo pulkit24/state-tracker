@@ -3,6 +3,10 @@ angular.module("sampleApp", ["state-tracker"])
 
 		$scope.v = "s";
 
+		$scope.begin = function() {
+			$scope.v = "reset!";
+		};
+
 		$scope.onChange = function(newState) {
 			$scope.v += newState;
 		};

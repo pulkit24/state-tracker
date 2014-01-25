@@ -1,5 +1,5 @@
 angular.module("state-tracker")
-	.factory("stateTracker", function() {
+	.factory("stateTracker", function($timeout) {
 
 		///////////////////////
 		// Tracking object //
@@ -17,9 +17,9 @@ angular.module("state-tracker")
 
 			// Set state
 			this._setState = function(state) {
-				this._notifyUnset(this._state);
+				this._notifyUnset(this._states[this._state]);
 				this._state = state;
-				this._notifySet(state);
+				this._notifySet(this._states[state]);
 				return this;
 			};
 
@@ -35,8 +35,15 @@ angular.module("state-tracker")
 
 			// Maps the supplied list to the states available
 			// and returns the list item corresponding to the current state
-			this._map = function(list) {
-
+			// (optional) Supply a start index as an offset for reading your list
+			// (optional) Supply a state name to be mapped instead of the current state
+			this.$map = function(list, startIndex, stateName) {
+				var state = stateName ? this._states.indexOf(stateName) : this._state;
+				try {
+					return list[state + startIndex];
+				} catch (e) {
+					return null;
+				}
 			};
 
 			//////////////////////////
@@ -49,24 +56,22 @@ angular.module("state-tracker")
 			// Register as a listener
 			this.$on = function(event, listener) {
 				var id;
-				if(event.toLowerCase() === "set") {
+				if (event.toLowerCase() === "set") {
 					id = setListeners.length;
 					setListeners.push(listener);
-				}
-				else if(event.toLowerCase() === "unset") {
+				} else if (event.toLowerCase() === "unset") {
 					id = unsetListeners.length;
 					unsetListeners.push(listener);
 				}
 				return function() {
-					this.$unbind(id);
+					this._unbind(id);
 				};
 			};
 
-			this.$unbind = function(event, id) {
-				if(event.toLowerCase() === "set") {
+			this._unbind = function(event, id) {
+				if (event.toLowerCase() === "set") {
 					setListeners[id] = angular.noop;
-				}
-				else if(event.toLowerCase() === "unset") {
+				} else if (event.toLowerCase() === "unset") {
 					unsetListeners[id] = angular.noop;
 				}
 			};
@@ -74,7 +79,9 @@ angular.module("state-tracker")
 			// Generic event push service
 			this._notify = function(listeners, payload) {
 				angular.forEach(listeners, function(listener, id) {
-					listener(payload);
+					$timeout(function() {
+						listener(payload);
+					}, 0);
 				});
 			};
 
@@ -113,7 +120,7 @@ angular.module("state-tracker")
 		var _createDefaultTracker = function(registrationName) {
 			return _createCustomTracker([{
 				state: "idle"
-				, set: "idle"
+				, set: "reset"
 				, check: "isIdle"
 			}, {
 				state: "active"
@@ -169,7 +176,8 @@ angular.module("state-tracker")
 				}
 
 				// Add the state to the tracker
-				tracker = addState(tracker, stateName, setFunction, checkFunction, angular.isUndefined(tracker._defaultState));
+				tracker = addState(tracker, stateName, setFunction, checkFunction, angular.isUndefined(
+					tracker._defaultState));
 			});
 
 			return tracker;
@@ -197,7 +205,7 @@ angular.module("state-tracker")
 			check = _sanitize(check);
 
 			// Register as a new state
-			if(tracker._states.indexOf(stateName) < 0)
+			if (tracker._states.indexOf(stateName) < 0)
 				tracker._states.push(stateName);
 
 			// Get the ID of the state, new or old

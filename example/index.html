@@ -10,10 +10,21 @@
 
 <body ng-app="sampleApp" ng-controller="SampleCtrl" ng-cloak>
 
-	<button state-tracker="s1" ng-click="s1.activate()" state-class="['', 'active', 'success', 'error']">
+	<button
+		state-tracker="s1"
+		state-class="['', 'active', 'success', 'error']"
+		state-on-active="begin()"
+		state-activate="v.length > 10"
+	>
 		{{ s1 | stateTracker:"Save":"Saving...":"Saved":"Save Failed" }}
 	</button>
-	<button state-tracker="s2" state-choices="['begin', 'do', 'end']" state-on-change="onChange" ng-click="s2.begin()">
+
+	<button
+		state-tracker="s2"
+		state-choices="['begin', 'do', 'end']"
+		state-on-change="onChange(newState)"
+		ng-click="s2.begin()"
+	>
 		{{ v }}
 	</button>
 
