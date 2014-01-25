@@ -1,5 +1,5 @@
 angular.module("state-tracker")
-	.factory("stateTracker", function($timeout) {
+	.factory("stateTracker", function($timeout, $q) {
 
 		///////////////////////
 		// Tracking object //
@@ -54,6 +54,13 @@ angular.module("state-tracker")
 			var unsetListeners = [];
 
 			// Register as a listener
+			// Two events are available:
+			// 	set: when a state is set.
+			// 	unset: when a state is being overwritten by a new state.
+			// Use "set" to perform tasks (example add a CSS class) on change.
+			// Use "unset" to clean up (example remove a CSS class) before change.
+			// Listeners are supplied the state name as a parameter.
+			// Returns: unbind function for executing when you need to destroy the listener.
 			this.$on = function(event, listener) {
 				var id;
 				if (event.toLowerCase() === "set") {
@@ -64,10 +71,11 @@ angular.module("state-tracker")
 					unsetListeners.push(listener);
 				}
 				return function() {
-					this._unbind(id);
+					this._unbind(event, id);
 				};
 			};
 
+			// Disassociate the listener from this event
 			this._unbind = function(event, id) {
 				if (event.toLowerCase() === "set") {
 					setListeners[id] = angular.noop;
@@ -94,6 +102,40 @@ angular.module("state-tracker")
 			this._notifySet = function(newState) {
 				this._notify(setListeners, newState);
 			};
+
+			///////////////////////////////
+			// Transitions and delays //
+			///////////////////////////////
+
+			// Register an automatic transition between state.
+			// Whenever the tracker hits fromState, it automatically
+			// converts to toState after the specified delay.
+			// Example use case: automatically revert save buttons after completion for reuse.
+			this.$transition = function(fromState, toState, delay) {
+				var self = this;
+
+				var fromStateName = angular.isString(fromState) ? fromState : this._states[fromState];
+				var toState = angular.isString(toState) ? this._states.indexOf(toState) : toState;
+
+				self.$on("set", function(newStateName) {
+					if (newStateName === fromStateName) {
+						self.$delay(delay).then(function() {
+							self._setState(toState)
+						});
+					}
+				});
+			};
+
+			// Delay execution by specified milliseconds
+			this.$delay = function(millis) {
+				var deferred = $q.defer();
+
+				$timeout(function() {
+					deferred.resolve();
+				}, millis);
+
+				return deferred.promise;
+			};
 		};
 
 		////////////////////////
@@ -106,9 +148,21 @@ angular.module("state-tracker")
 		// Create a new state tracker object
 		// (optional) Register globally by supplying a reference name
 		var _createBarebonesTracker = function(registrationName) {
-			var tracker = new stateTracker();
+			var tracker;
+
+			// Already registered?
 			if (registrationName)
-				registerTracker(registrationName, tracker);
+				tracker = retrieveFromRegistry(registrationName); // fetch from registry
+
+			// Else, create a new one
+			if (!tracker) {
+				tracker = new stateTracker(); // instantiate a new one
+
+				// Register globally if requested
+				if (registrationName)
+					registerTracker(registrationName, tracker);
+			}
+
 			return tracker;
 		};
 
@@ -193,6 +247,10 @@ angular.module("state-tracker")
 		var createTracker = function(arg0, arg1) {
 			if (angular.isArray(arg0))
 				return _createCustomTracker(arg0, arg1); // states, registrationName
+
+			else if (angular.isUndefined(arg0) && angular.isDefined(arg1))
+				return _createDefaultTracker(arg1); // null, registrationName
+
 			else
 				return _createDefaultTracker(arg0); // registrationName
 		};

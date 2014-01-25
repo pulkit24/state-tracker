@@ -5,6 +5,9 @@ angular.module("state-tracker")
 			, scope: {
 				stateTracker: "="
 
+				// Register globally
+				, stateRegisterAs: "@"
+
 				// Custom states
 				, stateChoices: "&"
 
@@ -30,7 +33,7 @@ angular.module("state-tracker")
 				////////////////////////////////////
 				// Initialize a state tracker //
 				////////////////////////////////////
-				scope.stateTracker = stateTracker.new(scope.stateChoices());
+				scope.stateTracker = stateTracker.new(scope.stateChoices(), scope.stateRegisterAs);
 
 				///////////////////////
 				// Apply classes //
@@ -55,7 +58,7 @@ angular.module("state-tracker")
 					if (scope.stateOnChange) {
 						$timeout(function() {
 							scope.stateOnChange({
-								newState: newState
+								state: newState
 							});
 						}, 0);
 					}

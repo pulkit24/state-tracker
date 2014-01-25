@@ -12,9 +12,10 @@
 
 	<button
 		state-tracker="s1"
+		state-register-as="s1"
 		state-class="['', 'active', 'success', 'error']"
-		state-on-active="begin()"
-		state-activate="v.length > 10"
+		ng-click="save()"
+		state-on-change="xx(state)"
 	>
 		{{ s1 | stateTracker:"Save":"Saving...":"Saved":"Save Failed" }}
 	</button>
@@ -22,11 +23,17 @@
 	<button
 		state-tracker="s2"
 		state-choices="['begin', 'do', 'end']"
-		state-on-change="onChange(newState)"
-		ng-click="s2.begin()"
+		state-class="['', 'active', 'success']"
 	>
-		{{ v }}
+		{{ s2 | stateTracker:"Begin":"Doing...":"Finished" }}
 	</button>
+
+	<br />
+	{{ x }}
+
+	<br />
+	{{ s1 }}
+
 
 	<!-- Scripts -->
 	<script src="../src/state-tracker.js"></script>
