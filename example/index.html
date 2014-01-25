@@ -12,14 +12,16 @@
 
 	<button
 		state-tracker="s1"
-		state-register-as="s1"
 		state-class="['', 'active', 'success', 'error']"
-		ng-click="save()"
+		ng-click="ready = true"
+		state-activate="ready"
+		state-on-active="ready = false"
+		state-transition="{ complete: {idle: 2000}, active: {complete: 2000} }"
 		state-on-change="xx(state)"
 	>
 		{{ s1 | stateTracker:"Save":"Saving...":"Saved":"Save Failed" }}
 	</button>
-
+{{ready}}
 	<button
 		state-tracker="s2"
 		state-choices="['begin', 'do', 'end']"
@@ -33,7 +35,6 @@
 
 	<br />
 	{{ s1 }}
-
 
 	<!-- Scripts -->
 	<script src="../src/state-tracker.js"></script>

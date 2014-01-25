@@ -6,21 +6,15 @@ angular.module("sampleApp", ["state-tracker"])
 			$scope.x += " " + state;
 		};
 
-		$scope.s1 = stateTracker.new("s1");
-		$scope.s1.$transition("active", "complete", 2000);
-		$scope.s1.$transition("complete", "idle", 2000);
-
 		$scope.save = function() {
-			$scope.s1.activate();
+			// Dummy processing...
+			$timeout(function() {
 
-			// $scope.s1.$transition("complete", "idle", 2000);
+				// Some processing here...
 
-			// // Dummy processing...
-			// $timeout(function(){
+				$scope.s1.complete(); // mark complete
 
-			// 	$scope.s1.complete();
-
-			// }, 2000);
+			}, 2000);
 		};
 
 	});

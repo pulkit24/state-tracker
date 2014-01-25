@@ -5,8 +5,9 @@ angular.module("state-tracker")
 			, scope: {
 				stateTracker: "="
 
-				// Register globally
-				, stateRegisterAs: "@"
+				// Tracker registration
+				, stateRegistrationName: "@stateTracker"
+				, stateIsolate: "@" // don't register if set
 
 				// Custom states
 				, stateChoices: "&"
@@ -21,24 +22,32 @@ angular.module("state-tracker")
 				, stateOnIdle: "&"
 				, stateOnActive: "&"
 				, stateOnComplete: "&"
-				, stateOnFail: "&"
+				, stateOnFailed: "&"
 
 				// State set functions executed on truthy (default states only)
 				, stateReset: "="
 				, stateActivate: "="
 				, stateComplete: "="
 				, stateFail: "="
+
+				// Automatic state transitions
+				, stateTransition: "&"
 			}
 			, link: function(scope, elem, attrs) {
 				////////////////////////////////////
 				// Initialize a state tracker //
 				////////////////////////////////////
-				scope.stateTracker = stateTracker.new(scope.stateChoices(), scope.stateRegisterAs);
+
+				if (scope.stateIsolate && scope.stateIsolate !== "false")
+					scope.stateRegistrationName = null;
+				scope.stateTracker = stateTracker.new(scope.stateChoices(), scope.stateRegistrationName);
 
 				///////////////////////
 				// Apply classes //
 				///////////////////////
+
 				var classes = scope.stateClass();
+
 				// Add class whenever the corresponding state is set
 				scope.stateTracker.$on("set", function(state) {
 					elem.addClass(scope.stateTracker.$map(classes, 0, state));
@@ -77,7 +86,7 @@ angular.module("state-tracker")
 							listener = scope.stateOnComplete;
 							break;
 						case "failed":
-							listener = scope.stateOnFail;
+							listener = scope.stateOnFailed;
 							break;
 					}
 
@@ -90,26 +99,43 @@ angular.module("state-tracker")
 
 
 				// Set state on truthy
-				if (angular.isDefined(scope.stateReset))
-					scope.$watch('stateReset', function(newValue) {
-						if (newValue)
-							scope.stateTracker.reset();
+				scope.$watch('stateReset', function(newValue) {
+					if (newValue)
+						scope.stateTracker.reset();
+				});
+				scope.$watch('stateActivate', function(newValue) {
+					if (newValue)
+						scope.stateTracker.activate();
+				});
+				scope.$watch('stateComplete', function(newValue) {
+					if (newValue)
+						scope.stateTracker.complete();
+				});
+				scope.$watch('stateFail', function(newValue) {
+					if (newValue)
+						scope.stateTracker.fail();
+				});
+
+				/////////////////////////////////////
+				// Automatic state transitions //
+				/////////////////////////////////////
+
+				var transitions = scope.stateTransition();
+				if (angular.isDefined(transitions)) {
+					angular.forEach(transitions, function(transition, fromState) {
+						angular.forEach(transition, function(delay, toState) {
+							scope.stateTracker.$transition(fromState, toState, delay);
+						});
 					});
-				if (angular.isDefined(scope.stateActivate))
-					scope.$watch('stateActivate', function(newValue) {
-						if (newValue)
-							scope.stateTracker.activate();
-					});
-				if (angular.isDefined(scope.stateComplete))
-					scope.$watch('stateComplete', function(newValue) {
-						if (newValue)
-							scope.stateTracker.complete();
-					});
-				if (angular.isDefined(scope.stateFail))
-					scope.$watch('stateFail', function(newValue) {
-						if (newValue)
-							scope.stateTracker.fail();
-					});
+				}
+
+
+				///////////////////////////////////////////////
+				// Initialize based on the default state //
+				///////////////////////////////////////////////
+
+				// Now that everything is ready, we should perform the tasks registered for the default state
+				scope.stateTracker.$revert(); // sets it to the default state, trigger the events
 
 			}
 		};

@@ -29,7 +29,7 @@ angular.module("state-tracker")
 			};
 
 			// Revert to default
-			this._revert = function(state) {
+			this.$revert = function(state) {
 				return this._setState(this._defaultState);
 			};
 
@@ -39,6 +39,10 @@ angular.module("state-tracker")
 			// (optional) Supply a state name to be mapped instead of the current state
 			this.$map = function(list, startIndex, stateName) {
 				var state = stateName ? this._states.indexOf(stateName) : this._state;
+
+				if (angular.isUndefined(startIndex))
+					startIndex = 0;
+
 				try {
 					return list[state + startIndex];
 				} catch (e) {
@@ -117,17 +121,19 @@ angular.module("state-tracker")
 				var fromStateName = angular.isString(fromState) ? fromState : this._states[fromState];
 				var toState = angular.isString(toState) ? this._states.indexOf(toState) : toState;
 
-				self.$on("set", function(newStateName) {
-					if (newStateName === fromStateName) {
-						self.$delay(delay).then(function() {
-							self._setState(toState)
-						});
-					}
-				});
+				if (fromStateName && toState >= 0) {
+					self.$on("set", function(newStateName) {
+						if (newStateName === fromStateName) {
+							self._delay(delay).then(function() {
+								self._setState(toState)
+							});
+						}
+					});
+				}
 			};
 
 			// Delay execution by specified milliseconds
-			this.$delay = function(millis) {
+			this._delay = function(millis) {
 				var deferred = $q.defer();
 
 				$timeout(function() {
@@ -142,56 +148,32 @@ angular.module("state-tracker")
 		// Manage trackers  //
 		////////////////////////
 
-		// Global registry of states - allows inter-scope communication
-		var registry = {};
-
-		// Create a new state tracker object
-		// (optional) Register globally by supplying a reference name
-		var _createBarebonesTracker = function(registrationName) {
-			var tracker;
-
-			// Already registered?
-			if (registrationName)
-				tracker = retrieveFromRegistry(registrationName); // fetch from registry
-
-			// Else, create a new one
-			if (!tracker) {
-				tracker = new stateTracker(); // instantiate a new one
-
-				// Register globally if requested
-				if (registrationName)
-					registerTracker(registrationName, tracker);
-			}
-
-			return tracker;
-		};
-
-		// Create a default state tracker with the following states:
+		// The default set of states:
 		// idle - set using tracker.idle(); check using tracker.isIdle();
 		// active - set using tracker.activate(); check using tracker.isActive();
 		// complete - set using tracker.complete(); check using tracker.isComplete();
 		// failed - set using tracker.fail(); check using tracker.isFailed();
-		var _createDefaultTracker = function(registrationName) {
-			return _createCustomTracker([{
-				state: "idle"
-				, set: "reset"
-				, check: "isIdle"
-			}, {
-				state: "active"
-				, set: "activate"
-				, check: "isActive"
-			}, {
-				state: "complete"
-				, set: "complete"
-				, check: "isComplete"
-			}, {
-				state: "failed"
-				, set: "fail"
-				, check: "isFailed"
-			}], registrationName);
-		};
+		var _defaultStates = [{
+			state: "idle"
+			, set: "reset"
+			, check: "isIdle"
+		}, {
+			state: "active"
+			, set: "activate"
+			, check: "isActive"
+		}, {
+			state: "complete"
+			, set: "complete"
+			, check: "isComplete"
+		}, {
+			state: "failed"
+			, set: "fail"
+			, check: "isFailed"
+		}];
 
-		// Create a custom tracker with your own states
+		// Unified function to create a tracker. Delegates to other functions as necessary
+		// Usage:
+		// 	createTracker([custom states], [registration name])
 		// Supply an array of states in either of these formats:
 		// 1. [ "state1", "state2", "state3", ... ]
 		// 		Setter functions are automatically created as:
@@ -206,13 +188,50 @@ angular.module("state-tracker")
 		//		Checking functions are then available as specified:
 		//			tracker.isStarted(); tracker.isOver(); ...
 		//
+		//	3. If no states supplied, the default set of states will be provided.
+		//
 		// Note: the first state will be considered the default state
-		var _createCustomTracker = function(states, registrationName) {
+		var createTracker = function(arg0, arg1) {
+			var states;
+			var registrationName;
+
+			if (angular.isArray(arg0)) {
+				states = arg0;
+				registrationName = arg1;
+			} else if (angular.isUndefined(arg0) && angular.isDefined(arg1)) {
+				states = _defaultStates;
+				registrationName = arg1;
+			} else {
+				states = _defaultStates;
+				registrationName = arg0;
+			}
+
+			// First, try to fetch from the registry
+			var registeredTracker = retrieveFromRegistry(registrationName);
+			if (registeredTracker)
+			// Found, reuse it
+				return registeredTracker;
+			else {
+				// Create a new one
+				var tracker = new stateTracker();
+
+				// Fill out the states
+				tracker = _constructStates(tracker, states);
+
+				// Register if required
+				if (registrationName)
+					registerTracker(registrationName, tracker);
+
+				return tracker;
+			}
+		};
+
+		// Fill out a tracker with the specified states
+		// along with their set and check functions
+		function _constructStates (tracker, states, registrationName) {
 			if (!angular.isArray(states) || !states.length)
 				return null;
 
-			// Create a basic tracker
-			var tracker = _createBarebonesTracker(registrationName);
 			var stateName, setFunction, checkFunction;
 
 			// Include the states supplied
@@ -230,34 +249,16 @@ angular.module("state-tracker")
 				}
 
 				// Add the state to the tracker
-				tracker = addState(tracker, stateName, setFunction, checkFunction, angular.isUndefined(
+				tracker = _addState(tracker, stateName, setFunction, checkFunction, angular.isUndefined(
 					tracker._defaultState));
 			});
 
 			return tracker;
 		};
 
-		// Sanitize a given value for use as name
-		// Allow alphanumeric, and non-initial underscores only
-		function _sanitize(value) {
-			return ("" + value).replace(/[^a-zA-Z0-9_]/g, "").replace(/^_+/, "");
-		}
-
-		// Unified function to create a tracker. Delegates to other functions as necessary
-		var createTracker = function(arg0, arg1) {
-			if (angular.isArray(arg0))
-				return _createCustomTracker(arg0, arg1); // states, registrationName
-
-			else if (angular.isUndefined(arg0) && angular.isDefined(arg1))
-				return _createDefaultTracker(arg1); // null, registrationName
-
-			else
-				return _createDefaultTracker(arg0); // registrationName
-		};
-
 		// Add a state to the tracker, and make human-friendly set and check functions
 		// for the individual state
-		function addState(tracker, stateName, set, check, isDefault) {
+		function _addState(tracker, stateName, set, check, isDefault) {
 			stateName = _sanitize(stateName);
 			set = _sanitize(set);
 			check = _sanitize(check);
@@ -283,8 +284,15 @@ angular.module("state-tracker")
 			if (isDefault)
 				tracker._defaultState = stateID;
 
-			return tracker._revert(); // set to default state
+			return tracker.$revert(); // set to default state
 		}
+
+		///////////////////////////////
+		// Global tracker registry //
+		///////////////////////////////
+
+		// Global registry of states - allows inter-scope communication
+		var registry = {};
 
 		// Register a tracker globally against a reference name
 		var registerTracker = function(registrationName, tracker) {
@@ -297,6 +305,17 @@ angular.module("state-tracker")
 			return registry[registrationName];
 		};
 
+		/////////////////////////
+		// Utility functions //
+		/////////////////////////
+
+		// Sanitize a given value for use as name
+		// Allow alphanumeric, and non-initial underscores only
+		function _sanitize(value) {
+			return ("" + value).replace(/[^a-zA-Z0-9_]/g, "").replace(/^_+/, "");
+		}
+
+		// Capitalize a given value for use as a name
 		function _capitalize(name) {
 			return name.charAt(0).toUpperCase() + name.slice(1);
 		}
