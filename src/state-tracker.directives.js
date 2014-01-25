@@ -30,11 +30,20 @@ angular.module("state-tracker")
 				/////////////////////////////
 				// Event subscriptions //
 				/////////////////////////////
+
+				// On state change
 				if(angular.isFunction(scope.stateOnChange())) {
 					scope.stateTracker.$on("set", function(newState) {
 						scope.stateOnChange()(newState);
 					});
 				}
+
+				// On each state set
+				// angular.forEach(scope.stateTracker._states, function(state, stateName) {
+				// 	if(attrs["state-on-" + stateName])
+				// 	scope.stateTracker.
+				// });
+
 			}
 		};
 	});

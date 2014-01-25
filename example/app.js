@@ -7,8 +7,4 @@ angular.module("sampleApp", ["state-tracker"])
 			$scope.v += newState;
 		};
 
-		// $scope.s2.$on("set", function(newState) {
-		// 	$scope.v += newState;
-		// });
-
 	});

@@ -7,13 +7,13 @@ angular.module("state-tracker")
 		var stateTracker = function() {
 
 			// Possible states
-			this._states = {};
+			this._states = [];
 
 			// Default state
-			this._defaultState = null;
+			this._defaultState = undefined;
 
 			// Current state
-			this._state = null;
+			this._state = undefined;
 
 			// Set state
 			this._setState = function(state) {
@@ -31,6 +31,12 @@ angular.module("state-tracker")
 			// Revert to default
 			this._revert = function(state) {
 				return this._setState(this._defaultState);
+			};
+
+			// Maps the supplied list to the states available
+			// and returns the list item corresponding to the current state
+			this._map = function(list) {
+
 			};
 
 			//////////////////////////
@@ -106,16 +112,20 @@ angular.module("state-tracker")
 		// failed - set using tracker.fail(); check using tracker.isFailed();
 		var _createDefaultTracker = function(registrationName) {
 			return _createCustomTracker([{
-				set: "idle"
+				state: "idle"
+				, set: "idle"
 				, check: "isIdle"
 			}, {
-				set: "activate"
+				state: "active"
+				, set: "activate"
 				, check: "isActive"
 			}, {
-				set: "complete"
+				state: "complete"
+				, set: "complete"
 				, check: "isComplete"
 			}, {
-				set: "fail"
+				state: "failed"
+				, set: "fail"
 				, check: "isFailed"
 			}], registrationName);
 		};
@@ -128,8 +138,8 @@ angular.module("state-tracker")
 		// 		Checking functions are automatically created as:
 		// 			tracker.isState1(); tracker.isState2(); tracker.isState3(); ...
 		//
-		// 2. [	{set: "toFirst", check: "isStarted"}
-		//		, {set: "toLast", check: "isOver"}, ... ]
+		// 2. [	{state: "init", set: "toFirst", check: "isStarted"}
+		//		, {state:"end", set: "toLast", check: "isOver"}, ... ]
 		//		Setter functions are then available as specified:
 		//			tracker.toFirst(); tracker.toLast(); ...
 		//		Checking functions are then available as specified:
@@ -147,18 +157,19 @@ angular.module("state-tracker")
 			// Include the states supplied
 			angular.forEach(states, function(state, index) {
 				// Construct meaningful function names based on the type of info supplied
-				stateName = index + 1; // 1 based indexing: avoid zero
 
 				if (angular.isString(state)) {
+					stateName = state;
 					setFunction = state;
 					checkFunction = "is" + _capitalize(state);
 				} else if (angular.isObject(state)) {
+					stateName = state.state;
 					setFunction = state.set;
 					checkFunction = state.check;
 				}
 
 				// Add the state to the tracker
-				tracker = addState(tracker, stateName, setFunction, checkFunction, !tracker._defaultState);
+				tracker = addState(tracker, stateName, setFunction, checkFunction, angular.isUndefined(tracker._defaultState));
 			});
 
 			return tracker;
@@ -180,27 +191,31 @@ angular.module("state-tracker")
 
 		// Add a state to the tracker, and make human-friendly set and check functions
 		// for the individual state
-		function addState(tracker, state, set, check, isDefault) {
-			state = parseInt(_sanitize(state), 10);
+		function addState(tracker, stateName, set, check, isDefault) {
+			stateName = _sanitize(stateName);
 			set = _sanitize(set);
 			check = _sanitize(check);
 
 			// Register as a new state
-			tracker._states[state] = state;
+			if(tracker._states.indexOf(stateName) < 0)
+				tracker._states.push(stateName);
+
+			// Get the ID of the state, new or old
+			var stateID = tracker._states.indexOf(stateName);
 
 			// Register human-friendly setter function
 			tracker[set] = function() {
-				return tracker._setState(state);
+				return tracker._setState(stateID);
 			};
 
 			// Register human-friendly check function
 			tracker[check] = function() {
-				return tracker._isState(state);
+				return tracker._isState(stateID);
 			};
 
 			// Mark as default if required
 			if (isDefault)
-				tracker._defaultState = tracker._states[state];
+				tracker._defaultState = stateID;
 
 			return tracker._revert(); // set to default state
 		}

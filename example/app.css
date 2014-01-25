@@ -15,7 +15,7 @@ button.active {
 	background: lightblue;
 }
 button.success {
-	background: green;
+	background: lightgreen;
 }
 button.error {
 	background: #c90000;
