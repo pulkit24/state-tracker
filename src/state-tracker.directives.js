@@ -25,10 +25,10 @@ angular.module("state-tracker")
 				, stateOnFailed: "&"
 
 				// State set functions executed on truthy (default states only)
-				, stateReset: "="
-				, stateActivate: "="
-				, stateComplete: "="
-				, stateFail: "="
+				, stateReset: "&"
+				, stateActivate: "&"
+				, stateComplete: "&"
+				, stateFail: "&"
 
 				// Automatic state transitions
 				, stateTransition: "&"
@@ -99,19 +99,19 @@ angular.module("state-tracker")
 
 
 				// Set state on truthy
-				scope.$watch('stateReset', function(newValue) {
+				scope.$watch('stateReset()', function(newValue) {
 					if (newValue)
 						scope.stateTracker.reset();
 				});
-				scope.$watch('stateActivate', function(newValue) {
+				scope.$watch('stateActivate()', function(newValue) {
 					if (newValue)
 						scope.stateTracker.activate();
 				});
-				scope.$watch('stateComplete', function(newValue) {
+				scope.$watch('stateComplete()', function(newValue) {
 					if (newValue)
 						scope.stateTracker.complete();
 				});
-				scope.$watch('stateFail', function(newValue) {
+				scope.$watch('stateFail()', function(newValue) {
 					if (newValue)
 						scope.stateTracker.fail();
 				});

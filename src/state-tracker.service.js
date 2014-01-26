@@ -56,35 +56,46 @@ angular.module("state-tracker")
 
 			var setListeners = [];
 			var unsetListeners = [];
+			var stateListeners = {}; // per-state lists
 
 			// Register as a listener
-			// Two events are available:
-			// 	set: when a state is set.
+			// Supply the name of a state to be notified whenever the state is set.
+			// Example, stateTracker.$on("active", function() { ... } )
+			// Two other events are also available:
+			//  set: when a state is set.
 			// 	unset: when a state is being overwritten by a new state.
 			// Use "set" to perform tasks (example add a CSS class) on change.
 			// Use "unset" to clean up (example remove a CSS class) before change.
 			// Listeners are supplied the state name as a parameter.
 			// Returns: unbind function for executing when you need to destroy the listener.
 			this.$on = function(event, listener) {
-				var id;
+				var id, list = null;
 				if (event.toLowerCase() === "set") {
 					id = setListeners.length;
 					setListeners.push(listener);
 				} else if (event.toLowerCase() === "unset") {
 					id = unsetListeners.length;
 					unsetListeners.push(listener);
+				} else {
+					list = event;
+					if (!stateListeners[list])
+						stateListeners[list] = [];
+					id = stateListeners[list].length;
+					stateListeners[list].push(listener);
 				}
 				return function() {
-					this._unbind(event, id);
+					this._unbind(event, id, list);
 				};
 			};
 
 			// Disassociate the listener from this event
-			this._unbind = function(event, id) {
+			this._unbind = function(event, id, list) {
 				if (event.toLowerCase() === "set") {
 					setListeners[id] = angular.noop;
 				} else if (event.toLowerCase() === "unset") {
 					unsetListeners[id] = angular.noop;
+				} else {
+					stateListeners[list][id] = angular.noop;
 				}
 			};
 
@@ -104,7 +115,8 @@ angular.module("state-tracker")
 
 			// Notify a state is being set
 			this._notifySet = function(newState) {
-				this._notify(setListeners, newState);
+				this._notify(stateListeners[newState], newState); // notify the state-specific listeners
+				this._notify(setListeners, newState); // notify the generic listeners
 			};
 
 			///////////////////////////////
@@ -228,7 +240,7 @@ angular.module("state-tracker")
 
 		// Fill out a tracker with the specified states
 		// along with their set and check functions
-		function _constructStates (tracker, states, registrationName) {
+		function _constructStates(tracker, states, registrationName) {
 			if (!angular.isArray(states) || !states.length)
 				return null;
 

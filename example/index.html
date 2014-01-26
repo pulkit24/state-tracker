@@ -4,37 +4,54 @@
 <head>
 	<meta charset=utf-8 />
 	<title>Angular State Tracker</title>
+	<link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"
+	/>
 	<link rel="stylesheet" href="app.css" />
+
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
 </head>
 
-<body ng-app="sampleApp" ng-controller="SampleCtrl" ng-cloak>
+<body ng-app="sampleApp" ng-controller="SampleCtrl" ng-cloak class="container">
 
-	<button
-		state-tracker="s1"
-		state-class="['', 'active', 'success', 'error']"
-		ng-click="ready = true"
-		state-activate="ready"
-		state-on-active="ready = false"
-		state-transition="{ complete: {idle: 2000}, active: {complete: 2000} }"
-		state-on-change="xx(state)"
-	>
-		{{ s1 | stateTracker:"Save":"Saving...":"Saved":"Save Failed" }}
-	</button>
-{{ready}}
-	<button
-		state-tracker="s2"
-		state-choices="['begin', 'do', 'end']"
-		state-class="['', 'active', 'success']"
-	>
-		{{ s2 | stateTracker:"Begin":"Doing...":"Finished" }}
-	</button>
+	<div class="row">
 
-	<br />
-	{{ x }}
+		<h2>Manage states from directive</h2>
 
-	<br />
-	{{ s1 }}
+		<div class="col-md-6">
+
+			<h4>Preview</h4>
+
+			<button type="button" class="btn"
+				state-tracker="saveProgress"
+				state-class="['btn-primary', 'btn-primary', 'btn-success', 'btn-danger']"
+
+				state-on-idle="readyToSave = false"
+
+				ng-click="readyToSave = true"
+
+				state-activate="readyToSave === true"
+				state-on-active="save()"
+
+				state-transition="{ complete: {idle: 2500}, failed: {idle: 2500} }">
+
+				{{ saveProgress | stateTracker:"Save":"Saving ":"Saved ":"Save Failed " }}
+				<i state-tracker="saveProgress"
+					state-class="['', 'fa fa-spinner fa-spin', 'fa fa-check', 'fa fa-times']">
+				</i>
+
+			</button>
+
+			<hr/>
+			<p>Currently {{ saveProgress | stateTracker:"doing nothing":"saving" }}</p>
+			<p ng-if="saveProgress.isActive()">
+				<button type="button" class="btn btn-default" ng-click="saveProgress.complete()">Mark complete</button>
+				<button type="button" class="btn btn-default" ng-click="saveProgress.fail()">Mark failed</button>
+			</p>
+
+		</div>
+
+	</div>
 
 	<!-- Scripts -->
 	<script src="../src/state-tracker.js"></script>
