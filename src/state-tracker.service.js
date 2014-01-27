@@ -70,6 +70,8 @@ angular.module("state-tracker")
 			// Returns: unbind function for executing when you need to destroy the listener.
 			this.$on = function(event, listener) {
 				var id, list = null;
+
+				// Add to the list of subscribed listeners
 				if (event.toLowerCase() === "set") {
 					id = setListeners.length;
 					setListeners.push(listener);
@@ -83,6 +85,10 @@ angular.module("state-tracker")
 					id = stateListeners[list].length;
 					stateListeners[list].push(listener);
 				}
+
+				// Let them know of the current state
+				this._notifySet(this._states[this._state]);
+
 				return function() {
 					this._unbind(event, id, list);
 				};
