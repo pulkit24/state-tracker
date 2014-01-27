@@ -22,9 +22,9 @@
 
 			<h4>Preview</h4>
 
-			<button type="button" class="btn"
+			<button type="button" class="btn" id="testButton"
 				state-tracker="saveProgress"
-				state-class="['btn-primary', 'btn-primary', 'btn-success', 'btn-danger']"
+				state-class="['btn-default', 'btn-primary', 'btn-success', 'btn-danger']"
 
 				state-on-idle="readyToSave = false"
 
@@ -32,6 +32,8 @@
 
 				state-activate="readyToSave === true"
 				state-on-active="save()"
+
+				state-on-change="i = i + 1"
 
 				state-transition="{ complete: {idle: 2500}, failed: {idle: 2500} }">
 
@@ -41,6 +43,8 @@
 				</i>
 
 			</button>
+
+			Changed: {{ i }} time(s)
 
 			<hr/>
 			<p>Currently {{ saveProgress | stateTracker:"doing nothing":"saving" }}</p>

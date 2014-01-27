@@ -8,4 +8,6 @@ angular.module("sampleApp", ["state-tracker"])
 		$scope.isReady = function() {
 			return $scope.readyToSave;
 		}
+
+		$scope.i = 0;
 	});

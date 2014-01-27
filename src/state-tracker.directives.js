@@ -2,141 +2,119 @@ angular.module("state-tracker")
 	.directive('stateTracker', function(stateTracker, $timeout) {
 		return {
 			restrict: 'EA'
-			, scope: {
-				stateTracker: "="
-
-				// Tracker registration
-				, stateRegistrationName: "@stateTracker"
-				, stateIsolate: "@" // don't register if set
-
-				// Custom states
-				, stateChoices: "&"
-
-				// Map classes by state
-				, stateClass: "&"
-
-				// Generic on-change function available to every state tracker
-				, stateOnChange: "&"
-
-				// State-specific on-change functions (default states only)
-				, stateOnIdle: "&"
-				, stateOnActive: "&"
-				, stateOnComplete: "&"
-				, stateOnFailed: "&"
-
-				// State set functions executed on truthy (default states only)
-				, stateReset: "&"
-				, stateActivate: "&"
-				, stateComplete: "&"
-				, stateFail: "&"
-
-				// Automatic state transitions
-				, stateTransition: "&"
-			}
 			, link: function(scope, elem, attrs) {
-				////////////////////////////////////
-				// Initialize a state tracker //
-				////////////////////////////////////
+				try {
+					////////////////////////////////////
+					// Initialize a state tracker //
+					////////////////////////////////////
 
-				if (scope.stateIsolate && scope.stateIsolate !== "false")
-					scope.stateRegistrationName = null;
-				scope.stateTracker = stateTracker.new(scope.stateChoices(), scope.stateRegistrationName);
+					var stateTrackerObject = scope.$eval(attrs.stateTracker);
 
-				///////////////////////
-				// Apply classes //
-				///////////////////////
+					var stateRegistrationName = attrs.stateTracker;
+					if (attrs.stateIsolate && attrs.stateIsolate !== "false")
+						stateRegistrationName = null;
 
-				var classes = scope.stateClass();
-
-				// Add class whenever the corresponding state is set
-				scope.stateTracker.$on("set", function(state) {
-					elem.addClass(scope.stateTracker.$map(classes, 0, state));
-				});
-				// Remove previously added class whenever the state is being changed
-				scope.stateTracker.$on("unset", function(state) {
-					elem.removeClass(scope.stateTracker.$map(classes, 0, state));
-				});
-
-				/////////////////////////////
-				// Event subscriptions //
-				/////////////////////////////
-
-				// On state change
-				scope.stateTracker.$on("set", function(newState) {
-					// Execute any on-change events specified with the directive
-					if (scope.stateOnChange) {
-						$timeout(function() {
-							scope.stateOnChange({
-								state: newState
-							});
-						}, 0);
+					if (!stateTrackerObject) {
+						stateTrackerObject = stateTracker.new(scope.$eval(attrs.stateChoices), stateRegistrationName);
+						// Add to scope
+						scope[stateRegistrationName] = stateTrackerObject;
 					}
 
-					// Execute any of the default on-state-set events specified with the directive
-					// Note: only available for state trackers with default states
-					var listener = null;
-					switch (newState) {
-						case "idle":
-							listener = scope.stateOnIdle;
-							break;
-						case "active":
-							listener = scope.stateOnActive;
-							break;
-						case "complete":
-							listener = scope.stateOnComplete;
-							break;
-						case "failed":
-							listener = scope.stateOnFailed;
-							break;
-					}
+					///////////////////////
+					// Apply classes //
+					///////////////////////
 
-					if (listener) {
-						$timeout(function() {
-							listener();
-						}, 0);
-					}
-				});
+					var classes = scope.$eval(attrs.stateClass);
 
-
-				// Set state on truthy
-				scope.$watch('stateReset()', function(newValue) {
-					if (newValue)
-						scope.stateTracker.reset();
-				});
-				scope.$watch('stateActivate()', function(newValue) {
-					if (newValue)
-						scope.stateTracker.activate();
-				});
-				scope.$watch('stateComplete()', function(newValue) {
-					if (newValue)
-						scope.stateTracker.complete();
-				});
-				scope.$watch('stateFail()', function(newValue) {
-					if (newValue)
-						scope.stateTracker.fail();
-				});
-
-				/////////////////////////////////////
-				// Automatic state transitions //
-				/////////////////////////////////////
-
-				var transitions = scope.stateTransition();
-				if (angular.isDefined(transitions)) {
-					angular.forEach(transitions, function(transition, fromState) {
-						angular.forEach(transition, function(delay, toState) {
-							scope.stateTracker.$transition(fromState, toState, delay);
-						});
+					// Add class whenever the corresponding state is set
+					stateTrackerObject.$on("set", function(state) {
+						elem.addClass(stateTrackerObject.$map(classes, 0, state));
 					});
+					// Remove previously added class whenever the state is being changed
+					stateTrackerObject.$on("unset", function(state) {
+						elem.removeClass(stateTrackerObject.$map(classes, 0, state));
+					});
+
+					/////////////////////////////
+					// Event subscriptions //
+					/////////////////////////////
+
+					// On state change
+					stateTrackerObject.$on("set", function(state) {
+						// Execute any on-change events specified with the directive
+						if (attrs.stateOnChange) {
+							$timeout(function() {
+								scope.$eval(attrs.stateOnChange);
+							}, 0);
+						}
+
+						// Execute any of the default on-state-set events specified with the directive
+						// Note: only available for state trackers with default states
+						var listener = null;
+						switch (state) {
+							case "idle":
+								listener = attrs.stateOnIdle;
+								break;
+							case "active":
+								listener = attrs.stateOnActive;
+								break;
+							case "complete":
+								listener = attrs.stateOnComplete;
+								break;
+							case "failed":
+								listener = attrs.stateOnFailed;
+								break;
+						}
+
+						if (listener) {
+							$timeout(function() {
+								scope.$eval(listener);
+							}, 0);
+						}
+					});
+
+					// Set state on truthy
+					scope.$watch(attrs.stateReset, function(newValue) {
+						if (newValue)
+							stateTrackerObject.reset();
+					});
+					scope.$watch(attrs.stateActivate, function(newValue) {
+						if (newValue)
+							stateTrackerObject.activate();
+					});
+					scope.$watch(attrs.stateComplete, function(newValue) {
+						if (newValue)
+							stateTrackerObject.complete();
+					});
+					scope.$watch(attrs.stateFail, function(newValue) {
+						if (newValue)
+							stateTrackerObject.fail();
+					});
+
+					/////////////////////////////////////
+					// Automatic state transitions //
+					/////////////////////////////////////
+
+					var transitions = scope.$eval(attrs.stateTransition);
+					if (angular.isDefined(transitions)) {
+						angular.forEach(transitions, function(transition, fromState) {
+							angular.forEach(transition, function(delay, toState) {
+								stateTrackerObject.$transition(fromState, toState, delay);
+							});
+						});
+					}
+
+					///////////////////////////////////////////////
+					// Initialize based on the default state //
+					///////////////////////////////////////////////
+
+					// Now that everything is ready, we should perform the tasks registered for the default state
+					stateTrackerObject.$revert(); // sets it to the default state, trigger the events
+
+				} catch (e) {
+					// Failed to eval - parse error
+					console.log("State Tracker failed to parse directives");
 				}
-
-
-				///////////////////////////////////////////////
-				// Initialize based on the default state //
-				///////////////////////////////////////////////
-
-				// Now that everything is ready, we should perform the tasks registered for the default state
-				scope.stateTracker.$revert(); // sets it to the default state, trigger the events
-
 			}
 		};
 	});
