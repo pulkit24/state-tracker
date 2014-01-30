@@ -33,9 +33,9 @@
 				state-activate="readyToSave === true"
 				state-on-active="save()"
 
-				state-on-change="i = i + 1"
+				state-on-change="i = i + 1">
 
-				state-transition="{ complete: {idle: 2500}, failed: {idle: 2500} }">
+				<!-- state-transition="{ complete: {idle: 2500}, failed: {idle: 2500} }"> -->
 
 				{{ saveProgress | stateTracker:"Save":"Saving ":"Saved ":"Save Failed " }}
 				<i state-tracker="saveProgress"

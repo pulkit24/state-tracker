@@ -89,8 +89,9 @@ angular.module("state-tracker")
 				// Let them know of the current state
 				this._notifySet(this._states[this._state]);
 
+				var self = this;
 				return function() {
-					this._unbind(event, id, list);
+					self._unbind(event, id, list);
 				};
 			};
 
