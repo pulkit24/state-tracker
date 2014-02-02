@@ -314,14 +314,57 @@ angular.module("state-tracker")
 		var registry = {};
 
 		// Register a tracker globally against a reference name
+		// Only done when the tracker is created, so any pending
+		// (awaiting) get requests are resolved at this point
 		var registerTracker = function(registrationName, tracker) {
+			// Save in registry
 			registry[registrationName] = tracker;
+
+			// Resolve any pending get requests
+			satisfyGetRequests(registrationName);
+
 			return tracker;
 		};
 
 		// Retrieve a tracker from the global registry by its reference name
 		var retrieveFromRegistry = function(registrationName) {
 			return registry[registrationName];
+		};
+
+		// Retrieve when available, return a promise
+		var pendingGetRequests = {};
+		var registerGetRequest = function(registrationName) {
+			var deferred = $q.defer();
+
+			// Already available?
+			var tracker = retrieveFromRegistry(registrationName);
+			// Just return it
+			if(tracker)
+				deferred.resolve(tracker);
+
+			// Otherwise, register interest
+			// Initiate a list of pending promises on this name
+			if(!pendingGetRequests[registrationName])
+				pendingGetRequests[registrationName] = [];
+			// Add the promise
+			pendingGetRequests[registrationName].push(deferred);
+
+			// Return the promise
+			return deferred.promise;
+		};
+
+		// On creation, this is called to resolve all pending promises
+		var satisfyGetRequests = function(registrationName) {
+			// Get the new tracker
+			var tracker = retrieveFromRegistry(registrationName);
+
+			// Any pending requests?
+			if(pendingGetRequests[registrationName]) {
+				for(var i = 0, len = pendingGetRequests[registrationName].length; i < len; i++) {
+					// Resolve the promises with the new tracker
+					pendingGetRequests[registrationName][i].resolve(tracker);
+				}
+			}
 		};
 
 		/////////////////////////
@@ -346,5 +389,6 @@ angular.module("state-tracker")
 		return {
 			new: createTracker
 			, get: retrieveFromRegistry
+			, getWhenAvailable: registerGetRequest
 		}
 	});
