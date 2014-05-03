@@ -1,0 +1,556 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>State Tracker by pulkit24</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>State Tracker</h1>
+        <p>A flexible and powerful state control utility for Angular</p>
+
+        <p class="view"><a href="https://github.com/pulkit24/state-tracker">View the Project on GitHub <small>pulkit24/state-tracker</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/pulkit24/state-tracker/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/pulkit24/state-tracker/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/pulkit24/state-tracker">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="state-tracker" class="anchor" href="#state-tracker"><span class="octicon octicon-link"></span></a><a href="http://pulkit24.github.io/state-tracker/index.html">State Tracker</a>
+</h1>
+
+<p><strong>A flexible and powerful state control utility for Angular.</strong></p>
+
+<h2>
+<a name="whats-it-all-about" class="anchor" href="#whats-it-all-about"><span class="octicon octicon-link"></span></a>What's it all about?</h2>
+
+<p>State Tracker is a set of a directive, a service and a filter that allows you to set, track and manipulate states of any objects in your HTML. Example, track the state of an AJAX call and change the content of your view appropriately. It is intended to be as generic as possible, so you can use it for any scenario you need. </p>
+
+<p>See <a href="http://pulkit24.github.io/state-tracker/example/index.html">live demos and sample use cases here</a>.</p>
+
+<h3>
+<a name="why-use-it" class="anchor" href="#why-use-it"><span class="octicon octicon-link"></span></a>Why use it?</h3>
+
+<p>Suppose you have a Save button on your page. On clicking, you'd like to change the text in the button to <em>"Saving..."</em>, perhaps change the appearance and add a loading indicator. When the save is finished, you'd like to display <em>"Save Complete"</em> momentarily, then automatically reset the button back to its original appearance.</p>
+
+<p>All of this requires a bunch of additional, unnecessary code and scope variables. You'll need a variable with values for "original", "saving", and "complete" states; you'll need to aply CSS classes depending on the states for changing the appearance; an <code>ng-if</code> for the loading indicator; and repeat all this for each Save button. Further, you'll need to create timeout functions for the automatic reset, and somehow trigger that on save completion. Tedious!</p>
+
+<p>State Tracker has all of that groundwork already laid out for you. Using State Tracker, you use the directive to apply a tracker to your Save button, then use the filter to automatically switch the text and content for you based on the current state. Want automatic transitions? Set one up in 4 words max!</p>
+
+<h3>
+<a name="how-does-it-work" class="anchor" href="#how-does-it-work"><span class="octicon octicon-link"></span></a>How does it work?</h3>
+
+<p>By default, State Tracker includes the following four states:</p>
+
+<ul>
+<li>Idle</li>
+<li>Active</li>
+<li>Complete</li>
+<li>Failed</li>
+</ul><p>(You can define your own states for every tracker. See <strong>Custom States</strong>.)</p>
+
+<p>Create a tracker on your button:</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span><span class="nt">&gt;</span>Save<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p>Change state on clicking:</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">ng-click=</span><span class="s">"myTracker.activate(); save()"</span><span class="nt">&gt;</span>Save<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p>At the end of your save function in your controller, you can set the state to complete:</p>
+
+<div class="highlight highlight-js"><pre><span class="nx">$scope</span><span class="p">.</span><span class="nx">save</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="nx">$scope</span><span class="p">.</span><span class="nx">myTracker</span><span class="p">.</span><span class="nx">complete</span><span class="p">();</span>
+    <span class="p">...</span>
+<span class="p">};</span>
+</pre></div>
+
+<p>Switch the text on the button using the provided filter:</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span><span class="nt">&gt;</span>
+    {{ myTracker | stateTracker:"Save":"Saving...":"Save Complete!":"Save Failed!" }}
+<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p>When the save is completed, automatically revert back to the original state in 2 seconds:</p>
+
+<div class="highlight highlight-html"><pre><span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-transition=</span><span class="s">"{complete: {idle: 2000}}"</span><span class="nt">&gt;</span>
+    Save
+<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p>Simple!</p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>State Tracker is available as a <code>state-tracker</code> directive as well as a <code>stateTracker</code> service for your controller. You can perform all functions using either. A <code>stateTracker</code> filter is also available for dynamically selecting a value from a supplied list based on the current state.</p>
+
+<h3>
+<a name="creating-a-state-tracker" class="anchor" href="#creating-a-state-tracker"><span class="octicon octicon-link"></span></a>Creating a State Tracker</h3>
+
+<p><strong>Using the directive</strong></p>
+
+<p>Define a state tracker using <code>state-tracker</code> attribute, the value being the name.</p>
+
+<div class="highlight highlight-html"><pre><span class="c">&lt;!-- Creates a new tracker. Available in controller as $scope.myTracker variable. Also registered globally and accessible via the stateTracker service (see below). --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span><span class="nt">&gt;</span>Save<span class="nt">&lt;/button&gt;</span>
+
+<span class="c">&lt;!-- Uses the same tracker as above. Useful for sharing tracking info across controls. --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span><span class="nt">&gt;</span>Same Tracker<span class="nt">&lt;/button&gt;</span>
+
+<span class="c">&lt;!-- Prevent global registration using state-isolate. --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-isolate</span><span class="nt">&gt;</span>Different Tracker<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p><strong>Using the service</strong></p>
+
+<p>Use the <code>new()</code> function to create a new tracker.</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">function</span> <span class="nx">MyController</span><span class="p">(</span><span class="nx">$scope</span><span class="p">,</span> <span class="nx">stateTracker</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="c1">// Create a new tracker.</span>
+    <span class="kd">var</span> <span class="nx">tracker1</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">();</span>
+
+    <span class="c1">// Create a new tracker and register it globally as "myTracker".</span>
+    <span class="kd">var</span> <span class="nx">tracker2</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">(</span><span class="s2">"myTracker"</span><span class="p">);</span>
+
+    <span class="c1">// Retrieve the already-registered "myTracker".</span>
+    <span class="kd">var</span> <span class="nx">tracker3</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">(</span><span class="s2">"myTracker"</span><span class="p">);</span> <span class="c1">// tracker3 === tracker2</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Note: this does not create a globally-registered tracker. If you want to register your tracker globally, supply a name as a parameter: <code>stateTracker.new("myTracker")</code>. As stated above, globally registered trackers are accessible from any scope. The <code>new()</code> function with a name as parameter returns the existing tracker if previously registered. You can also explicitly retrieve this tracker from any other scope using the <code>get()</code> function: <code>stateTracker.get("myTracker")</code>. The <code>get()</code> function does not create a new tracker if not found.</p>
+
+<h3>
+<a name="changing-states-manually" class="anchor" href="#changing-states-manually"><span class="octicon octicon-link"></span></a>Changing states manually</h3>
+
+<p><strong>Using the directive</strong></p>
+
+<p>Change the state when the supplied expression is truthy using these attributes:</p>
+
+<ul>
+<li>Switch to Idle state: <code>state-reset="[expression]"</code>
+</li>
+<li>Switch to Active state: <code>state-activate="[expression]"</code>
+</li>
+<li>Switch to Complete state: <code>state-complete="[expression]"</code>
+</li>
+<li>Switch to Failed state: <code>state-fail="[expression]"</code>
+</li>
+</ul><p><strong>Using the service</strong></p>
+
+<p>You can switch between all states using these functions:</p>
+
+<ul>
+<li>Switch to Idle state: <code>myTracker.reset()</code>
+</li>
+<li>Switch to Active state: <code>myTracker.activate()</code>
+</li>
+<li>Switch to Complete state: <code>myTracker.complete()</code>
+</li>
+<li>Switch to Failed state: <code>myTracker.fail()</code>
+</li>
+</ul><h3>
+<a name="checking-the-current-state" class="anchor" href="#checking-the-current-state"><span class="octicon octicon-link"></span></a>Checking the current state</h3>
+
+<p><strong>Using the directive</strong></p>
+
+<p>You can set an expression to be executed when the tracker reaches a desired state using these attributes:</p>
+
+<ul>
+<li>Execute on Idle state: <code>state-on-idle="[expression]"</code>
+</li>
+<li>Execute on Active state: <code>state-on-active="[expression]"</code>
+</li>
+<li>Execute on Complete state: <code>state-on-complete="[expression]"</code>
+</li>
+<li>Execute on Failed state: <code>state-on-failed="[expression]"</code>
+</li>
+</ul><p><strong>Using the service</strong></p>
+
+<p>You can check for the state using these functions. They return a boolean as expected. Use them in if-else conditionals to perform your tasks.</p>
+
+<ul>
+<li>Check for Idle state: <code>myTracker.isIdle()</code>
+</li>
+<li>Check for Active state: <code>myTracker.isActive()</code>
+</li>
+<li>Check for Complete state: <code>myTracker.isComplete()</code>
+</li>
+<li>Check for Failed state: <code>myTracker.isFailed()</code>
+</li>
+</ul><h2>
+<a name="utility-functions" class="anchor" href="#utility-functions"><span class="octicon octicon-link"></span></a>Utility Functions</h2>
+
+<h3>
+<a name="apply-css-classes-dynamically-by-state" class="anchor" href="#apply-css-classes-dynamically-by-state"><span class="octicon octicon-link"></span></a>Apply CSS classes dynamically by state</h3>
+
+<p><strong>Using the directive</strong></p>
+
+<div class="highlight highlight-js"><pre><span class="nx">state</span><span class="o">-</span><span class="kr">class</span> <span class="o">=</span> <span class="s2">"[</span>
+<span class="s2">    'class(es) for Idle state'</span>
+<span class="s2">    , 'class(es) for Active state'</span>
+<span class="s2">    , 'class(es) for Complete state'</span>
+<span class="s2">    , 'class(es) for Failed state'</span>
+<span class="s2">]"</span>
+</pre></div>
+
+<p>Dynamically apply a CSS class from the list provided, depending on the current state. </p>
+
+<p><em>Example:</em></p>
+
+<div class="highlight highlight-html"><pre><span class="c">&lt;!-- Change the colour of the Bootstrap button. --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-class=</span><span class="s">"['btn btn-default', 'btn btn-primary', 'btn btn-success']"</span><span class="nt">&gt;</span>Save<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<h3>
+<a name="select-text-to-display-dynamically-by-state" class="anchor" href="#select-text-to-display-dynamically-by-state"><span class="octicon octicon-link"></span></a>Select text to display dynamically by state</h3>
+
+<p><strong>Using the filter</strong></p>
+
+<p>Use the <code>stateTracker</code> filter over your tracker object and supply strings as arguments, one for each state. </p>
+
+<p><em>Example:</em></p>
+
+<div class="highlight highlight-html"><pre><span class="c">&lt;!-- The Save button will switch from "Save" to "Saving..." and "Save Complete" using the filter. --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span><span class="nt">&gt;</span>
+    {{ myTracker | stateTracker:"Save":"Saving...":"Save Complete!":"Save Failed!" }}
+<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<h3>
+<a name="select-from-a-list-of-items-based-on-the-current-state" class="anchor" href="#select-from-a-list-of-items-based-on-the-current-state"><span class="octicon octicon-link"></span></a>Select from a list of items based on the current state</h3>
+
+<p><strong>Using the service</strong></p>
+
+<p>Use the <code>$map()</code> function to map a list of items to the state. Useful for picking out texts, CSS classes etc. from within the controller. The <code>state-class</code> attribute and the <code>stateTracker</code> filter use this function underneath.</p>
+
+<p><em>Example:</em></p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">myTracker</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">(</span><span class="s2">"myTracker"</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">currentItem</span> <span class="o">=</span> <span class="nx">myTracker</span><span class="p">.</span><span class="nx">$map</span><span class="p">([</span> <span class="s2">"item for Idle state"</span><span class="p">,</span> <span class="s2">"item for Active state"</span><span class="p">,</span> <span class="s2">"item for Complete state"</span><span class="p">,</span> <span class="s2">"item for Failed state"</span> <span class="p">]);</span>
+<span class="c1">// Initially, currentItem is "item for Idle state".</span>
+</pre></div>
+
+<h2>
+<a name="event-listeners" class="anchor" href="#event-listeners"><span class="octicon octicon-link"></span></a>Event listeners</h2>
+
+<p>Get notified of a change in the state.</p>
+
+<p><strong>Using the directive</strong></p>
+
+<p>You can register listeners and set an expression to be executed when the tracker reaches a desired state using these attributes:</p>
+
+<ul>
+<li>Execute on Idle state: <code>state-on-idle="[expression]"</code>
+</li>
+<li>Execute on Active state: <code>state-on-active="[expression]"</code>
+</li>
+<li>Execute on Complete state: <code>state-on-complete="[expression]"</code>
+</li>
+<li>Execute on Failed state: <code>state-on-failed="[expression]"</code>
+</li>
+</ul><p><em>Example:</em></p>
+
+<div class="highlight highlight-html"><pre><span class="c">&lt;!-- Call loadContent() whenever activated. --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">ng-click=</span><span class="s">"myTracker.activate()"</span> <span class="na">state-on-active=</span><span class="s">"loadContent()"</span><span class="nt">&gt;</span>
+    {{ myTracker | stateTracker:"Load content":"Loading...":"Reload" }}
+<span class="nt">&lt;/button&gt;</span>
+
+<span class="c">&lt;!-- Count the number of times loadContent() was called. --&gt;</span>
+<span class="nt">&lt;p</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-on-active=</span><span class="s">"count = count + 1"</span><span class="nt">&gt;</span>{{ count }}<span class="nt">&lt;/p&gt;</span>
+
+<span class="c">&lt;!-- Count the times when the state changes, regardless of state. --&gt;</span>
+<span class="nt">&lt;p</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-on-change=</span><span class="s">"allCount = allCount + 1"</span><span class="nt">&gt;</span>{{ allCount }}<span class="nt">&lt;/p&gt;</span>
+</pre></div>
+
+<p><strong>Using the service</strong></p>
+
+<p>Register listeners using the <code>$on()</code> function.</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">myTracker</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">(</span><span class="s2">"myTracker"</span><span class="p">);</span>
+
+<span class="c1">// On active, alert a notice.</span>
+<span class="nx">myTracker</span><span class="p">.</span><span class="nx">$on</span><span class="p">(</span><span class="s2">"active"</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="nx">alert</span><span class="p">(</span><span class="s2">"we are now active!"</span><span class="p">);</span> <span class="p">});</span>
+
+<span class="c1">// When any state is set, alert the name of the state.</span>
+<span class="nx">myTracker</span><span class="p">.</span><span class="nx">$on</span><span class="p">(</span><span class="s2">"set"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">stateName</span><span class="p">)</span> <span class="p">{</span> <span class="nx">alert</span><span class="p">(</span><span class="s2">"we are now in "</span> <span class="o">+</span> <span class="nx">stateName</span><span class="p">);</span> <span class="p">});</span>
+
+<span class="c1">// When any state is unset, alert the name of the state.</span>
+<span class="nx">myTracker</span><span class="p">.</span><span class="nx">$on</span><span class="p">(</span><span class="s2">"unset"</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">stateName</span><span class="p">)</span> <span class="p">{</span> <span class="nx">alert</span><span class="p">(</span><span class="s2">"we just left "</span> <span class="o">+</span> <span class="nx">stateName</span><span class="p">);</span> <span class="p">});</span>
+</pre></div>
+
+<h3>
+<a name="automatic-transitions" class="anchor" href="#automatic-transitions"><span class="octicon octicon-link"></span></a>Automatic transitions</h3>
+
+<p>Automatic transition is the most interesting feature of State Tracker. You can set automatic changes to the content and appearance with hardly any effort. No need to create annoying timeouts functions or manage complicated conditionals. Just pass the names of the <em>origin state</em>, the <em>destination state</em> and the delay in milliseconds. Whenever the tracker hits the <em>origin state</em>, it will switch to the <em>destination state</em> automatically after the specified delay. Often used to reset buttons to their original state after completion, and with custom states (see <strong>Custom States</strong>).</p>
+
+<p><strong>Using the directive</strong></p>
+
+<p>The transitions object has the following format:</p>
+
+<div class="highlight highlight-js"><pre><span class="p">{</span>
+    <span class="nx">fromState1</span><span class="o">:</span> <span class="p">{</span> <span class="nx">toState1</span><span class="p">,</span> <span class="nx">delayInMillis</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="nx">fromState2</span><span class="o">:</span> <span class="p">{</span> <span class="nx">toState2</span><span class="p">,</span> <span class="nx">delayInMillis</span> <span class="p">}</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+<p><em>Example:</em></p>
+
+<div class="highlight highlight-html"><pre><span class="c">&lt;!-- When activated, the state will automatically switch to Complete in 1s, and then to Idle in 3s. --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-transition=</span><span class="s">"{active: {complete: 1000}, complete: {idle: 3000}}"</span><span class="nt">&gt;</span>Save<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p><strong>Using the service</strong></p>
+
+<p>Register transitions using <code>$transition()</code> function.</p>
+
+<p><em>Example:</em></p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">myTracker</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">(</span><span class="s2">"myTracker"</span><span class="p">);</span>
+
+<span class="c1">// Switch from Active to Complete in 1s.</span>
+<span class="nx">myTracker</span><span class="p">.</span><span class="nx">$transition</span><span class="p">(</span><span class="s2">"active"</span><span class="p">,</span> <span class="s2">"complete"</span><span class="p">,</span> <span class="mi">1000</span><span class="p">);</span>
+
+<span class="c1">// Switch from Complete to Idle in 3s.</span>
+<span class="nx">myTracker</span><span class="p">.</span><span class="nx">$transition</span><span class="p">(</span><span class="s2">"complete"</span><span class="p">,</span> <span class="s2">"idle"</span><span class="p">,</span> <span class="mi">3000</span><span class="p">);</span>
+</pre></div>
+
+<h2>
+<a name="all-options" class="anchor" href="#all-options"><span class="octicon octicon-link"></span></a>All Options</h2>
+
+<h3>
+<a name="directive-attributes" class="anchor" href="#directive-attributes"><span class="octicon octicon-link"></span></a>Directive Attributes</h3>
+
+<table>
+<thead><tr>
+<th align="left">Attribute</th>
+<th align="center">Value</th>
+<th align="center">Default</th>
+<th align="left">Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">state-tracker</td>
+<td align="center"><code>string</code></td>
+<td align="center">null</td>
+<td align="left">Create a new state tracker. If a value is supplied, the tracker is registered globally under that name. If a tracker already exists with the name, the existing tracker is used.</td>
+</tr>
+<tr>
+<td align="left">state-isolate</td>
+<td align="center"><code>boolean</code></td>
+<td align="center">false</td>
+<td align="left">Avoid registering the tracker globally, or retrieving an existing tracker from the global registry. Use this if you don't need to refer the tracker outside the current scope, or if you aren't sure if the name clashes with another, different tracker</td>
+</tr>
+<tr>
+<td align="left">state-activate, state-complete, state-fail, state-reset</td>
+<td align="center"><code>expression</code></td>
+<td align="center">falsy</td>
+<td align="left">Switch state when value evaluates to truthy. Not available with custom states (see <strong>Custom States</strong>).</td>
+</tr>
+<tr>
+<td align="left">state-on-idle, state-on-active, state-on-complete, state-on-failed</td>
+<td align="center"><code>expression</code></td>
+<td align="center">null</td>
+<td align="left">Expressions to evaluate when the tracker is in the state specified. Not available with custom states (see <strong>Custom States</strong>).</td>
+</tr>
+<tr>
+<td align="left">state-on-change</td>
+<td align="center"><code>expression</code></td>
+<td align="center">null</td>
+<td align="left">Expressions to evaluate every time the tracker changes state.</td>
+</tr>
+<tr>
+<td align="left">state-class</td>
+<td align="center"><code>array</code></td>
+<td align="center">null</td>
+<td align="left">CSS class names applied to the element whenever the tracker is in the corresponding state. <strong>Format:</strong> 1['classes for Idle', 'classes for Active', 'classes for Complete', 'classes for Failed']` (number of elements and order follows the tracker's states)</td>
+</tr>
+<tr>
+<td align="left">state-transition</td>
+<td align="center"><code>object</code></td>
+<td align="center">null</td>
+<td align="left">Automatically transition between states. <strong>Format:</strong> <code>{fromState: {toState: delay}}</code>, where delay is in milliseconds</td>
+</tr>
+<tr>
+<td align="left">state-choices</td>
+<td align="center"><code>array</code></td>
+<td align="center"><em>(default states)</em></td>
+<td align="left">Custom states to use instead of the default. <strong>Format:</strong> array of state names: <code>['state1', 'state2', 'state3']</code> or array of state, set function and check function names: <code>[{state: "state1", set: "toState1", check: "isState1"}, {state: "state2", set: "toState2", check: "isState2"}]</code> (see <strong>Custom States</strong>).</td>
+</tr>
+</tbody>
+</table><h3>
+<a name="service-options" class="anchor" href="#service-options"><span class="octicon octicon-link"></span></a>Service Options</h3>
+
+<p><strong>Functions provided by stateTracker Service</strong></p>
+
+<table>
+<thead><tr>
+<th align="left">Function</th>
+<th align="center">Parameters</th>
+<th align="center">Returns</th>
+<th align="left">Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">new( [CustomStates], [RegistrationName] )</td>
+<td align="center">
+<code>array</code> and <code>string</code>
+</td>
+<td align="center">Tracker object</td>
+<td align="left">Create a new state tracker. If <strong>RegistrationName</strong> is supplied, the tracker is registered globally under that name. If a tracker already exists with the name, the existing tracker is used. Supply <strong>CustomStates</strong> to override defaults. <strong>Format:</strong> array of state names: <code>['state1', 'state2', 'state3']</code> or array of state, set function and check function names: <code>[{state: "state1", set: "toState1", check: "isState1"}, {state: "state2", set: "toState2", check: "isState2"}]</code> (see <strong>Custom States</strong>).</td>
+</tr>
+<tr>
+<td align="left">get(RegistrationName)</td>
+<td align="center"><code>string</code></td>
+<td align="center">Tracker object</td>
+<td align="left">Retrieve an existing tracker by the supplied name from the global registry. Returns <code>null</code> if none exists.</td>
+</tr>
+<tr>
+<td align="left">getWhenAvailable(RegistrationName)</td>
+<td align="center"><code>string</code></td>
+<td align="center">Promise</td>
+<td align="left">Returns a promise that is resolved as soon the tracker is registered elsewhere. The tracker is passed to the resolve callback. Useful if another part of the code needs the same tracker and you wish to avoid duplicating all the configuration settings you've already coded once.</td>
+</tr>
+</tbody>
+</table><p><strong>Functions provided by a State Tracker object</strong></p>
+
+<table>
+<thead><tr>
+<th align="left">Function</th>
+<th align="center">Parameters</th>
+<th align="center">Returns</th>
+<th align="left">Details</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">$revert</td>
+<td align="center">N/A</td>
+<td align="center">null</td>
+<td align="left">Reset the tracker to the default state (by default, the Idle state).</td>
+</tr>
+<tr>
+<td align="left">$map(list, [startIndex], [stateName])</td>
+<td align="center">
+<code>array</code>, <code>integer</code>, <code>string</code>
+</td>
+<td align="center">Array element</td>
+<td align="left">Maps the <strong>list</strong> to the states available and returns the item corresponding to the current state. The <strong>list</strong> is read from <strong>startIndex</strong> (default: 0) as offset. Supply a state name to be mapped instead of the current state.</td>
+</tr>
+<tr>
+<td align="left">$on(event, listener, [useOnce])</td>
+<td align="center">
+<code>string</code>, <code>function</code>, <code>boolean</code>
+</td>
+<td align="center">Unbind function</td>
+<td align="left">Register a listener to state changes. The <strong>event</strong> can be a state name (fired on set), "set" (fired when any state is set) and "unset" (fired before any state changes). For "set" and "unset", the state name is passed to the listener function. If <strong>useOnce</strong> is true, the listener is only fired the first time, automatically unbound right after.</td>
+</tr>
+<tr>
+<td align="left">$transition(fromState, toState, delay)</td>
+<td align="center">
+<code>string</code>, <code>string</code>, <code>integer</code>
+</td>
+<td align="center">null</td>
+<td align="left">Register an automatic transition between state. Whenever the tracker hits <strong>fromState</strong>, it automatically converts to <strong>toState</strong> after the specified delay. Example use case: automatically revert save buttons after completion for reuse.</td>
+</tr>
+</tbody>
+</table><h2>
+<a name="custom-states" class="anchor" href="#custom-states"><span class="octicon octicon-link"></span></a>Custom States</h2>
+
+<p>By default, the states available are: Idle, Active, Complete and Failed. You can choose your own states as follows. </p>
+
+<p>Each state has three associated details:</p>
+
+<ol>
+<li>Name: the name of the state. Example, <em>active</em>.</li>
+<li>Set function name: the name to be used for the setter function. Example, <em>activate()</em>.</li>
+<li>Check function name: the name to be used for the checking function. Example, <em>isActive()</em>.</li>
+</ol><p>You can define your own states either as a full array of objects:</p>
+
+<div class="highlight highlight-js"><pre><span class="p">[</span>
+    <span class="p">{</span> <span class="nx">state</span><span class="o">:</span> <span class="s2">"invalid"</span><span class="p">,</span> <span class="nx">set</span><span class="o">:</span> <span class="s2">"rejectValidity"</span><span class="p">,</span> <span class="nx">check</span><span class="o">:</span> <span class="s2">"isInvalid"</span> <span class="p">}</span>
+    <span class="p">,</span> <span class="p">{</span> <span class="nx">state</span><span class="o">:</span> <span class="s2">"valid"</span><span class="p">,</span> <span class="nx">set</span><span class="o">:</span> <span class="s2">"acceptValidity"</span><span class="p">,</span> <span class="nx">check</span><span class="o">:</span> <span class="s2">"isValid"</span> <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<p>Or, you can supply a simple list of state names. State Tracker will generate set and check functions automatically.</p>
+
+<p>Example, supply <code>[ "invalid", "valid" ]</code> and the generated states are:</p>
+
+<p>State: <em>invalid</em>
+Set function: <em>invalid()</em>
+Check function: <em>isInvalid()</em></p>
+
+<p>State: <em>valid</em>
+Set function: <em>valid()</em>
+Check function: <em>isValid()</em></p>
+
+<p>The first state is considered as the default state.</p>
+
+<p><strong>Using the directive</strong></p>
+
+<p>Supply your custom states in either of the formats above using <code>state-choices</code> attribute.</p>
+
+<p><em>Example:</em></p>
+
+<div class="highlight highlight-html"><pre><span class="c">&lt;!-- Create new states Study and Play --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-choices=</span><span class="s">"['study', 'play']"</span> <span class="na">ng-click=</span><span class="s">"myTracker.play()"</span><span class="nt">&gt;</span>Go play!<span class="nt">&lt;/button&gt;</span>
+
+<span class="c">&lt;!-- Create new states Study and Play with your own function names --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"myTracker"</span> <span class="na">state-choices=</span><span class="s">"[{state: 'studying', set: 'study', check: 'isStudying'}, {state: 'playing', set: 'play', check: 'isPlaying'}]"</span> <span class="na">ng-click=</span><span class="s">"myTracker.play()"</span><span class="nt">&gt;</span>Go play!<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+
+<p><strong>Using the service</strong></p>
+
+<p>Supply your custom states to the <code>new()</code> function.</p>
+
+<div class="highlight highlight-js"><pre><span class="kd">var</span> <span class="nx">myTracker</span> <span class="o">=</span> <span class="nx">stateTracker</span><span class="p">.</span><span class="k">new</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">{</span> <span class="nx">state</span><span class="o">:</span> <span class="s2">"stopped"</span><span class="p">,</span> <span class="nx">set</span><span class="o">:</span> <span class="s2">"stop"</span><span class="p">,</span> <span class="nx">check</span><span class="o">:</span> <span class="s2">"isStopped"</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="p">{</span> <span class="nx">state</span><span class="o">:</span> <span class="s2">"playing"</span><span class="p">,</span> <span class="nx">set</span><span class="o">:</span> <span class="s2">"play"</span><span class="p">,</span> <span class="nx">check</span><span class="o">:</span> <span class="s2">"isPlaying"</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="p">{</span> <span class="nx">state</span><span class="o">:</span> <span class="s2">"paused"</span><span class="p">,</span> <span class="nx">set</span><span class="o">:</span> <span class="s2">"pause"</span><span class="p">,</span> <span class="nx">check</span><span class="o">:</span> <span class="s2">"isPaused"</span> <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">);</span>
+
+<span class="c1">// Do stuff with the tracker...</span>
+<span class="k">if</span><span class="p">(</span><span class="nx">myTracker</span><span class="p">.</span><span class="nx">isStopped</span><span class="p">())</span>
+    <span class="nx">myTracker</span><span class="p">.</span><span class="nx">play</span><span class="p">();</span>
+</pre></div>
+
+<h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<p>See <a href="http://pulkit24.github.io/state-tracker/example/index.html">live demos and sample use cases here</a>.</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>Licensed under the <a href="http://www.opensource.org/licenses/mit-license.php">MIT License</a>.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/pulkit24">pulkit24</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
