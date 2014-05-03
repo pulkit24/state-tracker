@@ -5,3 +5,31 @@ button {
 	-ms-transition: 0.5s;
 	transition: 0.5s;
 }
+body {
+	background: #eee;
+}
+.container {
+	background: white;
+	border-radius: 2px;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+}
+.row {
+	padding: 10px;
+}
+.yellow {
+	background-color: #F5EBA2;
+}
+.red {
+	background-color: #FA7A81;
+}
+.green {
+	background-color: #BAFA7A;
+}
+.invalid {
+	border: 1px solid #FA7A81;
+	outline: none;
+}
+.valid {
+	border: 1px solid #BAFA7A;
+	outline: none;
+}

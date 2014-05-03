@@ -1,33 +1,33 @@
 angular.module("sampleApp", ["state-tracker"])
-	.controller("SampleCtrl", function($scope, stateTracker, $timeout) {
+	.controller("SampleCtrl", function($scope, $timeout, stateTracker) {
 
-		// Register a get request for a tracker that doesn't exist yet
-		stateTracker.getWhenAvailable("pending").then(function(tracker) {
-			tracker.complete();
-			$scope.newTracker = tracker;
-		});
-
+		// Directive: example 2: Save button
 		$scope.save = function() {
-			// some work
+			$scope.exampleTracker2.activate();
 
-			// Create the pending tracker at this point
-			stateTracker.new("pending");
+			// Simulate some lengthy processing using a simple 2 seconds time-out
+			$timeout(function() {
+				$scope.exampleTracker2.complete();
+			}, 2000);
 		};
 
-		$scope.isReady = function() {
-			return $scope.readyToSave;
-		}
+		// Quick example 2
+		$scope.isValid = function(inputText) {
+			return inputText && inputText.length >= 8 && !inputText.match(/[^0-9]/);
+		};
 
-		$scope.i = 0;
+		// Quick example 3
+		$scope.loadContent = function() {
+			$scope.loadedContent = null;
 
-		$scope.saveProgress = stateTracker.new("saveProgress");
-		var unbind = $scope.saveProgress.$on("complete", function() {
-			$scope.i += 1000;
-			$scope.saveProgress.reset();
-		});
+			// Simulate some lengthy processing using a simple 2 seconds time-out
+			$timeout(function() {
 
-		$scope.saveProgress.$on("failed", function(){
-			unbind();
-			$scope.saveProgress.reset();
-		});
+				$scope.loadedContent = "http://lorempixel.com/200/50";
+
+				$scope.quickTracker3.complete();
+			}, 2000);
+		};
+
+		$scope.alert = function(text) { alert(text) };
 	});
