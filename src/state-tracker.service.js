@@ -58,6 +58,13 @@ angular.module("state-tracker")
 			var unsetListeners = [];
 			var stateListeners = {}; // per-state lists
 
+			function addListener(list, listener, useOnce) {
+				list.push({listener: listener, useOnce: useOnce});
+			}
+			function setListener(list, id, listener, useOnce) {
+				list[id] = {listener: listener, useOnce: useOnce};
+			}
+
 			// Register as a listener
 			// Supply the name of a state to be notified whenever the state is set.
 			// Example, stateTracker.$on("active", function() { ... } )
@@ -67,23 +74,24 @@ angular.module("state-tracker")
 			// Use "set" to perform tasks (example add a CSS class) on change.
 			// Use "unset" to clean up (example remove a CSS class) before change.
 			// Listeners are supplied the state name as a parameter.
+			// Supply useOne = true to discard the listener after firing once (for one-time-only listeners).
 			// Returns: unbind function for executing when you need to destroy the listener.
-			this.$on = function(event, listener) {
+			this.$on = function(event, listener, useOnce) {
 				var id, list = null;
 
 				// Add to the list of subscribed listeners
 				if (event.toLowerCase() === "set") {
 					id = setListeners.length;
-					setListeners.push(listener);
+					addListener(setListeners, listener, useOnce);
 				} else if (event.toLowerCase() === "unset") {
 					id = unsetListeners.length;
-					unsetListeners.push(listener);
+					addListener(unsetListeners, listener, useOnce);
 				} else {
 					list = event;
 					if (!stateListeners[list])
 						stateListeners[list] = [];
 					id = stateListeners[list].length;
-					stateListeners[list].push(listener);
+					addListener(stateListeners[list], listener, useOnce);
 				}
 
 				// Let them know of the current state
@@ -98,11 +106,11 @@ angular.module("state-tracker")
 			// Disassociate the listener from this event
 			this._unbind = function(event, id, list) {
 				if (event.toLowerCase() === "set") {
-					setListeners[id] = angular.noop;
+					setListener(setListeners, id, angular.noop, false);
 				} else if (event.toLowerCase() === "unset") {
-					unsetListeners[id] = angular.noop;
+					setListener(unsetListeners, id, angular.noop, false);
 				} else {
-					stateListeners[list][id] = angular.noop;
+					setListener(stateListeners[list], id, angular.noop, false);
 				}
 			};
 
@@ -110,7 +118,12 @@ angular.module("state-tracker")
 			this._notify = function(listeners, payload) {
 				angular.forEach(listeners, function(listener, id) {
 					$timeout(function() {
-						listener(payload);
+						listener.listener(payload);
+
+						// Unbind one-time-only listeners immediately
+						if(listener.useOnce)
+							listener.listener = angular.noop;
+
 					}, 0);
 				});
 			};
