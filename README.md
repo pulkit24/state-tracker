@@ -4,9 +4,9 @@
 
 ## What's it all about?
 
-State Tracker is a set of a directive, a service and a filter that allows you to set, track and manipulate states of any objects in your HTML. Example, track the state of an AJAX call and change the content of your view appropriately. It is intended to be as generic as possible, so you can use it for any scenario you need. 
+State Tracker is a set of a directive, a service and a filter that allows you to set, track and manipulate states of any objects in your HTML. Example, track the state of an AJAX call and change the content of your view appropriately. It is intended to be as generic as possible, so you can use it for any scenario you need.
 
-See [live demos and sample use cases here](http://pulkit24.github.io/state-tracker/example/index.html).
+See [live demos and sample use cases here](http://pulkit24.github.io/state-tracker/index.html#examples).
 
 ### Why use it?
 
@@ -98,7 +98,7 @@ function MyController($scope, stateTracker) {
 
 	// Create a new tracker.
 	var tracker1 = stateTracker.new();
-	
+
 	// Create a new tracker and register it globally as "myTracker".
 	var tracker2 = stateTracker.new("myTracker");
 
@@ -165,7 +165,7 @@ state-class = "[
 ]"
 ```
 
-Dynamically apply a CSS class from the list provided, depending on the current state. 
+Dynamically apply a CSS class from the list provided, depending on the current state.
 
 *Example:*
 
@@ -178,7 +178,7 @@ Dynamically apply a CSS class from the list provided, depending on the current s
 
 **Using the filter**
 
-Use the `stateTracker` filter over your tracker object and supply strings as arguments, one for each state. 
+Use the `stateTracker` filter over your tracker object and supply strings as arguments, one for each state.
 
 *Example:*
 
@@ -321,9 +321,9 @@ myTracker.$transition("complete", "idle", 3000);
 | $on(event, listener, [useOnce]) | `string`, `function`, `boolean` | Unbind function | Register a listener to state changes. The **event** can be a state name (fired on set), "set" (fired when any state is set) and "unset" (fired before any state changes). For "set" and "unset", the state name is passed to the listener function. If **useOnce** is true, the listener is only fired the first time, automatically unbound right after. |
 | $transition(fromState, toState, delay) | `string`, `string`, `integer` | null | Register an automatic transition between state. Whenever the tracker hits **fromState**, it automatically converts to **toState** after the specified delay. Example use case: automatically revert save buttons after completion for reuse. |
 
-## Custom States 
+## Custom States
 
-By default, the states available are: Idle, Active, Complete and Failed. You can choose your own states as follows. 
+By default, the states available are: Idle, Active, Complete and Failed. You can choose your own states as follows.
 
 Each state has three associated details:
 
@@ -388,7 +388,7 @@ if(myTracker.isStopped())
 
 ## Examples
 
-See [live demos and sample use cases here](http://pulkit24.github.io/state-tracker/example/index.html).
+See [live demos and sample use cases here](http://pulkit24.github.io/state-tracker/index.html#examples).
 
 ## License
 

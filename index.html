@@ -5,14 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>State Tracker by pulkit24</title>
 
-    <link rel="stylesheet" href="gh-pages/stylesheets/styles.css">
-    <link rel="stylesheet" href="gh-pages/stylesheets/pygment_trac.css">
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="demo/stylesheets/styles.css">
+    <link rel="stylesheet" href="demo/stylesheets/pygment_trac.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
   </head>
-  <body>
+  <body ng-app="demoApp" ng-controller="DemoCtrl">
     <div class="wrapper">
       <header>
         <h1>State Tracker</h1>
@@ -39,7 +40,7 @@
 
 <p>State Tracker is a set of a directive, a service and a filter that allows you to set, track and manipulate states of any objects in your HTML. Example, track the state of an AJAX call and change the content of your view appropriately. It is intended to be as generic as possible, so you can use it for any scenario you need. </p>
 
-<p>See <a href="http://pulkit24.github.io/state-tracker/example/index.html">live demos and sample use cases here</a>.</p>
+<p>See <a href="http://pulkit24.github.io/state-tracker/index.html#examples">live demos and sample use cases here</a>.</p>
 
 <h3>
 <a name="why-use-it" class="anchor" href="#why-use-it"><span class="octicon octicon-link"></span></a>Why use it?</h3>
@@ -96,6 +97,15 @@
 </pre></div>
 
 <p>Simple!</p>
+
+<div class="demo">
+	<p><em>Complete example:</em></p>
+	<button state-tracker="demo1"
+		ng-click="demo1.activate()"
+		state-transition="{active: {complete: 2000}, complete: {idle: 2000}}">
+		{{ demo1 | stateTracker:"Save":"Saving...":"Save Complete!" }}
+	</button>
+</div>
 
 <h2>
 <a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
@@ -538,7 +548,142 @@ Check function: <em>isValid()</em></p>
 <h2>
 <a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
 
-<p>See <a href="http://pulkit24.github.io/state-tracker/example/index.html">live demos and sample use cases here</a>.</p>
+<!-- Demo 1 -->
+<div class="demo">
+	<p><em>Save button:</em></p>
+	<button state-tracker="demo1"
+		state-class="['idle', 'active', 'complete', 'failed']"
+		state-transition="{active: {complete: 2000}, complete: {idle: 2000}}"
+		ng-click="demo1.activate()">
+		{{ demo1 | stateTracker:"Save":"Saving...":"Save Complete!":"Save Failed!" }}
+		<i class="fa" state-tracker="demo1" state-class="['', 'fa-spinner fa-spin', 'fa-check', 'fa-times']"></i>
+	</button>
+</div>
+<div class="demo-src" ng-non-bindable>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"demo1"</span>
+    <span class="na">state-class=</span><span class="s">"['idle', 'active', 'complete', 'failed']"</span>
+    <span class="na">state-transition=</span><span class="s">"{active: {complete: 2000}, complete: {idle: 2000}}"</span>
+    <span class="na">ng-click=</span><span class="s">"demo1.activate()"</span><span class="nt">&gt;</span>
+
+    {{ demo1 | stateTracker:"Save":"Saving...":"Save Complete!":"Save Failed!" }}
+
+    <span class="nt">&lt;i</span> <span class="na">class=</span><span class="s">"fa"</span> <span class="na">state-tracker=</span><span class="s">"demo1"</span> <span class="na">state-class=</span><span class="s">"['', 'fa-spinner fa-spin', 'fa-check', 'fa-times']"</span><span class="nt">&gt;&lt;/i&gt;</span>
+
+<span class="nt">&lt;/button&gt;</span>
+</pre></div>
+</div>
+
+<!-- Demo 2 -->
+<div class="demo">
+	<p><em>Custom States</em></p>
+	<p>{{ demo2 | stateTracker:"Click the button to play music.":"Now playing: secret inaudible music.":"Paused. Click to resume." }}</p>
+
+	<!-- Stop button -->
+	<button class="tiny dark" state-tracker="demo2"
+		state-choices="[{state: 'stopped', set: 'stop', check: 'isStopped'}
+			, {state: 'playing', set: 'play', check: 'isPlaying'}
+			, {state: 'paused', set: 'pause', check: 'isPaused'}]"
+		ng-click="demo2.stop()">
+
+		<i class="fa fa-stop"></i>
+
+	</button>
+
+	<!-- Play/pause button -->
+	<button class="tiny dark" state-tracker="demo2"
+		ng-click="demo2.isPlaying() ? demo2.pause() : demo2.play()">
+
+		<i class="fa" state-tracker="demo2" state-class="['fa-play', 'fa-pause', 'fa-play']"></i>
+
+	</button>
+
+	<!-- Current state -->
+	<span class="capitalize">(State: {{ demo2 | stateTracker:"Stopped":"Playing":"Paused" }})</span>
+</div>
+<div class="demo-src" ng-non-bindable>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;p&gt;</span>{{ demo2 | stateTracker:"Click the button to play music.":"Now playing: secret inaudible music.":"Paused. Click to resume." }}<span class="nt">&lt;/p&gt;</span>
+
+<span class="c">&lt;!-- Stop button --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">class=</span><span class="s">"tiny dark"</span> <span class="na">state-tracker=</span><span class="s">"demo2"</span>
+    <span class="na">state-choices=</span><span class="s">"[{state: 'stopped', set: 'stop', check: 'isStopped'}</span>
+<span class="s">        , {state: 'playing', set: 'play', check: 'isPlaying'}</span>
+<span class="s">        , {state: 'paused', set: 'pause', check: 'isPaused'}]"</span>
+    <span class="na">ng-click=</span><span class="s">"demo2.stop()"</span><span class="nt">&gt;</span>
+
+    <span class="nt">&lt;i</span> <span class="na">class=</span><span class="s">"fa fa-stop"</span><span class="nt">&gt;&lt;/i&gt;</span>
+
+<span class="nt">&lt;/button&gt;</span>
+
+<span class="c">&lt;!-- Play/pause button --&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">class=</span><span class="s">"tiny dark"</span> <span class="na">state-tracker=</span><span class="s">"demo2"</span>
+    <span class="na">ng-click=</span><span class="s">"demo2.isPlaying() ? demo2.pause() : demo2.play()"</span><span class="nt">&gt;</span>
+
+    <span class="nt">&lt;i</span> <span class="na">class=</span><span class="s">"fa"</span> <span class="na">state-tracker=</span><span class="s">"demo2"</span> <span class="na">state-class=</span><span class="s">"['fa-play', 'fa-pause', 'fa-play']"</span><span class="nt">&gt;&lt;/i&gt;</span>
+
+<span class="nt">&lt;/button&gt;</span>
+
+<span class="c">&lt;!-- Current state --&gt;</span>
+<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"capitalize"</span><span class="nt">&gt;</span>(State: {{ demo2 | stateTracker:"Stopped":"Playing":"Paused" }})<span class="nt">&lt;/span&gt;</span>
+</pre></div>
+</div>
+
+<!-- Demo 3 -->
+<div class="demo">
+	<p><em>Shared loading indicator</em></p>
+	<p ng-repeat="part in [1, 2, 3] track by $index" class="demo-multiline">
+		<button state-tracker="demo3" state-isolate
+			state-complete="getLoadedDemoContent(part)"
+			ng-click="demo3.activate(); loadDemoContent(part)">
+			Load {{ part }}
+		</button>
+		<i class="fa" ng-class="demo3.isActive() ? 'fa-spinner fa-spin' : ''"></i>
+		<img ng-src="{{ getLoadedDemoContent(part) }}" ng-if="demo3.isComplete()" />
+	</p>
+</div>
+<div class="demo-src" ng-non-bindable>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;p</span> <span class="na">ng-repeat=</span><span class="s">"part in [1, 2, 3] track by $index"</span> <span class="na">class=</span><span class="s">"demo-multiline"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"demo3"</span> <span class="na">state-isolate</span>
+        <span class="na">state-complete=</span><span class="s">"getLoadedDemoContent(part)"</span>
+        <span class="na">ng-click=</span><span class="s">"demo3.activate(); loadDemoContent(part)"</span><span class="nt">&gt;</span>
+        Load {{ part }}
+    <span class="nt">&lt;/button&gt;</span>
+    <span class="nt">&lt;i</span> <span class="na">class=</span><span class="s">"fa"</span> <span class="na">ng-class=</span><span class="s">"demo3.isActive() ? 'fa-spinner fa-spin' : ''"</span><span class="nt">&gt;&lt;/i&gt;</span>
+    <span class="nt">&lt;img</span> <span class="na">ng-src=</span><span class="s">"{{ getLoadedDemoContent(part) }}"</span> <span class="na">ng-if=</span><span class="s">"demo3.isComplete()"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/p&gt;</span>
+</pre></div>
+</div>
+
+<!-- Demo 4 -->
+<div class="demo">
+	<p><em>Transitions and callbacks</em></p>
+	<p>Click to initiate automatic transitions over the 4 default states.</p>
+	<button state-tracker="demo4"
+		state-class="['idle', 'active', 'complete', 'failed']"
+		state-transition="{active: {complete: 2000}, complete: {failed: 2000}, failed: {idle: 2000}}"
+		state-on-active="alert('I am now active')"
+		state-on-complete="alert('I am now complete')"
+		state-on-failed="alert('I am now failed')"
+		state-on-change="changeCount = changeCount + 1"
+		ng-click="demo4.activate()">
+		State: {{ demo4 | stateTracker:"Idle":"Active":"Complete":"Failed" }}
+	</button>
+	<p>States have been set/changed {{ changeCount }} times</p>
+</div>
+<div class="demo-src" ng-non-bindable>
+<div class="highlight highlight-html"><pre><span class="nt">&lt;p&gt;</span>Click to initiate automatic transitions over the 4 default states.<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;button</span> <span class="na">state-tracker=</span><span class="s">"demo4"</span>
+    <span class="na">state-class=</span><span class="s">"['idle', 'active', 'complete', 'failed']"</span>
+    <span class="na">state-transition=</span><span class="s">"{active: {complete: 2000}, complete: {failed: 2000}, failed: {idle: 2000}}"</span>
+    <span class="na">state-on-active=</span><span class="s">"alert('I am now active')"</span>
+    <span class="na">state-on-complete=</span><span class="s">"alert('I am now complete')"</span>
+    <span class="na">state-on-failed=</span><span class="s">"alert('I am now failed')"</span>
+    <span class="na">state-on-change=</span><span class="s">"changeCount = changeCount + 1"</span>
+    <span class="na">ng-click=</span><span class="s">"demo4.activate()"</span><span class="nt">&gt;</span>
+    State: {{ demo4 | stateTracker:"Idle":"Active":"Complete":"Failed" }}
+<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;p&gt;</span>States have been set/changed {{ changeCount }} times<span class="nt">&lt;/p&gt;</span>
+</pre></div>
+</div>
 
 <h2>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
@@ -550,7 +695,10 @@ Check function: <em>isValid()</em></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
-    <script src="gh-pages/javascripts/scale.fix.js"></script>
-    
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
+    <script src="dist/state-tracker.min.js"></script>
+    <script src="demo/javascripts/scale.fix.js"></script>
+    <script src="demo/javascripts/demo.js"></script>
+
   </body>
 </html>
