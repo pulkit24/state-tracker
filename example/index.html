@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset=utf-8 />
+	<title>Angular State Tracker</title>
+	<link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"
+	/>
+	<link rel="stylesheet" href="app.css" />
+
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.1/angular.min.js"></script>
+</head>
+
+<body ng-app="sampleApp" ng-controller="SampleCtrl" ng-cloak>
+	<div class="container">
+
+		<!-- Intro -->
+		<div class="row">
+			<p>The state tracker is an easy and flexible way to track states for any needs and purposes. For instance, you could track the state of an AJAX save button and reflect save progress through the text or colours of button.</p>
+			<p>This package provides a <code>state-tracker</code> directive to initiate a tracker, as well as a <code>stateTracker</code> service that exposes the full array of methods and useful utilities.</p>
+			<p>Several examples are provided below to demonstrate the use cases.</p>
+			<p>See the full list of directives and service methods at the bottom.</p>
+		</div>
+
+		<!-- Quick examples -->
+		<div class="row">
+
+			<!-- Example 1: Save button -->
+			<div class="col-xs-3">
+				<h4>Save button</h4>
+				<button class="btn"
+					state-tracker="quickTracker1"
+					state-class="['btn-primary', 'btn-primary', 'btn-success', 'btn-danger']"
+					state-transition="{active: {complete: 2000}, complete: {idle: 2000}}"
+					ng-click="quickTracker1.activate()">
+					{{ quickTracker1 | stateTracker:"Save":"Saving...":"Saved":"Failed" }}
+					<i class="fa"
+						state-tracker="quickTracker1"
+						state-class="['', 'fa-spinner fa-spin', 'fa-check', 'fa-times']">
+					</i>
+				</button>
+			</div>
+			<!-- end example 1 -->
+
+			<!-- Example 2: Custom states -->
+			<div class="col-xs-3">
+				<h4>Custom States</h4>
+				<p>
+					Type at least 8 numbers and only numbers:
+				</p>
+				<p>
+					<input type="text" ng-model="quickExample2Input"
+						state-tracker="quickTracker2"
+						state-complete="isValid(quickExample2Input)"
+						state-fail="!isValid(quickExample2Input)"
+						state-class="['', '', 'valid', 'invalid']"/>
+				</p>
+				<p ng-if="quickTracker2.isComplete()">Your input is valid.</p>
+				<p ng-if="quickTracker2.isFailed()">Your input is not yet valid.</p>
+			</div>
+			<!-- end example 2 -->
+
+			<!-- Example 3: load content -->
+			<div class="col-xs-3">
+				<h4>Loading indicator</h4>
+
+				<p>
+					<button class="btn btn-warning"
+						state-tracker="quickTracker3"
+						state-on-active="loadContent()"
+						ng-click="quickTracker3.activate()">
+						{{ quickTracker3 | stateTracker:"Load content":"Loading...":"Reload" }}
+					</button>
+				</p>
+
+				<div class="well text-center">
+					<em ng-if="quickTracker3.isIdle()">Click the button to load content</em>
+					<i class=""
+						state-tracker="quickTracker3"
+						state-class="['', 'fa fa-3x fa-spinner fa-spin']">
+					</i>
+					<img ng-src="{{ loadedContent }}" ng-if="quickTracker3.isComplete()" />
+				</div>
+
+			</div>
+			<!-- end example 3 -->
+
+			<!-- Example 4: callbacks -->
+			<div class="col-xs-3">
+				<h4>Transitions and callbacks</h4>
+
+				<p>Click to initiate automatic transitions over the 4 default states</p>
+
+				<p>
+					<button class="btn"
+						state-tracker="quickTracker4"
+						state-class="['btn-default', 'btn-info', 'btn-success', 'btn-danger']"
+						state-transition="{active: {complete: 2000}, complete: {failed: 2000}, failed: {idle: 2000}}"
+						state-on-active="alert('I am now active')"
+						state-on-complete="alert('I am now complete')"
+						state-on-failed="alert('I am now failed')"
+						state-on-change="i = i + 1"
+						ng-click="quickTracker4.activate()">
+						State: {{ quickTracker4 | stateTracker:"Idle":"Active":"Complete":"Failed" }}
+					</button>
+				</p>
+
+				<p>States have been set/changed {{ i }} times</p>
+
+			</div>
+			<!-- end example 4 -->
+
+		</div>
+		<!-- end quick examples -->
+
+		<!-- Directive -->
+		<div class="row">
+			<div class="page-header">
+				<h2>The <code>state-tracker</code> Directive</h2>
+			</div>
+			<p>Initiate a tracker by using the attribute <code>state-tracker="myTrackerName"</code> on any element. The tracker is then available for direct use within the current scope (i.e. you can freely use it in the controller afterwards).
+		</div>
+
+		<!-- Directive: example 1: basic use -->
+		<div class="row">
+			<div class="col-xs-5">
+				<h4>Click the buttons to switch the state of the tracker</h4>
+
+				<p>
+					Current state:
+					<strong>{{ exampleTracker1.$map([
+						"idle"
+						, "active"
+						, "complete"
+						, "failed"
+					]) }}</strong>
+				</p>
+
+				<button class="btn btn-info"
+					state-tracker="exampleTracker1"
+					ng-click="exampleTracker1.activate()">
+					Activate</button>
+
+				<button class="btn btn-info"
+					state-tracker="exampleTracker1"
+					ng-click="exampleTracker1.complete()">
+					Mark Complete</button>
+
+				<button class="btn btn-info"
+					state-tracker="exampleTracker1"
+					ng-click="exampleTracker1.fail()">
+					Mark Failed</button>
+
+				<button class="btn btn-info"
+					state-tracker="exampleTracker1"
+					ng-click="exampleTracker1.reset()">
+					Reset</button>
+
+			</div>
+			<div class="col-xs-7">
+				<h4>Code</h4>
+				<pre ng-non-bindable>
+&lt;button class="btn"
+	state-tracker="myTracker"
+	ng-click="myTracker.activate()"
+&gt;
+	Activate
+&lt;/button&gt;</pre>
+			</div>
+		</div>
+		<!-- end directive: example 1 -->
+
+		<!-- Directive: example 2: Save use case -->
+		<div class="row">
+			<div class="col-xs-5">
+				<h4>Usage example: Save button</h4>
+
+				<p>Click the button to see the save progress.</p>
+
+				<button class="btn"
+					state-tracker="exampleTracker2"
+					state-class="['btn-default', 'btn-primary', 'btn-success']"
+					ng-click="save()">
+					{{ exampleTracker2 | stateTracker:"Save":"Saving...":"Saved!" }}
+				</button>
+			</div>
+			<div class="col-xs-7">
+				<h4>HTML</h4>
+				<pre ng-non-bindable>
+&lt;button class="btn"
+	state-tracker="myTracker"
+	state-class="['btn-default', 'btn-primary', 'btn-success']">
+	ng-click="save()"
+&gt;
+	{{ myTracker | stateTracker:"Save":"Saving...":"Saved!" }}
+&lt;/button&gt;</pre>
+
+				<h4>JS Controller</h4>
+				<pre ng-non-bindable>
+$scope.save = function() {
+	$scope.myTracker.activate();
+
+	// do some processing
+
+	$scope.myTracker.complete();
+};</pre>
+			</div>
+		</div>
+		<!-- end directive: example 2 -->
+
+		<!-- Directive: example 3: Auto transition -->
+		<div class="row">
+			<div class="col-xs-5">
+				<h4>Automatic state transitions</h4>
+
+				<p>Click the button to see the save progress. Note in the code how we don't call the <code>save()</code> function on click, but instead use automatic transitions to switch states.</p>
+
+				<button class="btn"
+					state-tracker="exampleTracker3"
+					state-class="['btn-default', 'btn-primary', 'btn-success']"
+					state-transition="{active: {complete: 2000}, complete: {idle: 2000}}"
+					ng-click="exampleTracker3.activate()">
+					{{ exampleTracker3 | stateTracker:"Save":"Saving. Will complete automatically in 2s":"Saved. Will reset automatically in 2s" }}
+				</button>
+			</div>
+			<div class="col-xs-7">
+				<h4>HTML</h4>
+				<pre ng-non-bindable>
+&lt;button class="btn"
+	state-tracker="myTracker"
+	state-class="['btn-default', 'btn-primary', 'btn-success']">
+	state-transition="{active: {complete: 2000}, complete: {idle: 2000}}"
+	ng-click="myTracker.activate()"
+&gt;
+	{{ myTracker | stateTracker:"Save":"Saving. Will complete automatically in 2s":"Saved. Will reset automatically in 2s" }}
+&lt;/button&gt;</pre>
+			</div>
+		</div>
+		<!-- end directive: example 3 -->
+
+	</div>
+	<!-- end container -->
+
+	<!-- Scripts -->
+	<script src="../dist/state-tracker.min.js"></script>
+	<script src="app.js"></script>
+</body>
+
+</html>
